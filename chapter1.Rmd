@@ -5,9 +5,20 @@
 
 ```{r}
 # This is a so-called "R chunk" where you can write R code.
-
+#version
 date()
-
 ```
-The text continues here.
+First time combining the use of the following tools for this **I**ntroduction to **O**pen **D**ata **S**cience (IODS) course:
 
+* R, (version 4.0.3 (2020-10-10))
+* RStudio (version 1.3.1093)
+* Git (2.29.0)
+
+Feeling very excited to embrace the future!
+
+
+IODS project GitHub repository:
+[https://github.com/mlammins/IODS-project](https://github.com/mlammins/IODS-project)
+
+> "By definition all scientists are data scientists. In my opinion, they are half hacker, half analyst, they use data to build products and find insights. It’s Columbus meet Columbo ― starry-eyed explorers and skeptical detectives.”
+> ―Monica Rogati, Independent Data Science Advisor
