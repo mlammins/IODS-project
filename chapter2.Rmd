@@ -1,4 +1,4 @@
-# Insert chapter 2 title here
+# 2. Regression and model validation
 
 *Describe the work you have done this week and summarize your learning.*
 
@@ -6,8 +6,103 @@
 - Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
 - Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
 
+## Introducing the dataset
+
 ```{r}
-date()
+learning2014 <- read.csv("./data/learning2014.csv") # reading the analysis data
+dim(learning2014) # number of rows and columns
+str(learning2014) # type of data
 ```
 
-Here we go again...
+The background for the data as described by the author:
+ 
+>Kimmo Vehkalahti: ASSIST 2014 - Phase 3 (end of Part 2), N=183
+Course: Johdatus yhteiskuntatilastotieteeseen, syksy 2014
+(Introduction to Social Statistics, fall 2014 - in Finnish),
+international survey of Approaches to Learning, made possible
+by Teachers' Academy funding for KV in 2013-2015.
+
+>Data collected: 3.12.2014 - 10.1.2015/KV
+>Data created: 14.1.2015/KV, in English 9.4.2015/KV,Florence,Italy
+Imputation 4.4.2015: only missing information in certain backgrounds,
+minimal amount of missing values imputed using Phases 1 and 2.
+
+For more information, see [https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt](https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt)
+
+
+## Graphical overview and summary of the data
+
+To get the idea of the data, let's make a graphical summary of the variables with females (red) and males (blue):
+```{r}
+library(ggplot2);
+library(GGally);
+p <- ggpairs(learning2014, mapping = aes(col=gender, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p # graphical summary
+summary(learning2014) # numerical summary
+```
+Taking a look at the graphical overview, the distribution for female (red) and male (blue) values seems to be relatively similar in all categories. Females seem to have a slightly higher values in surface learning (surf) and strategic learning (stra) and slighly lower values in attitude. The numerical summary of all data (not filtered by gender) shows that the majority of participants is young (under 30 years of age).
+
+
+## Fitting a regression model
+
+Next, let's test if there is correlation between attitude, strategic learning (stra) and surface learning tendency (surf) with the number of point obtained from the exam:
+```{r}
+library(ggplot2)
+# create a regression model with multiple explanatory variables
+my_model <- lm(points ~ attitude + stra + surf, data = learning2014)
+# print out a summary of the model
+summary(my_model)
+```
+Coefficients table gives an interpretation of the model. Intecept giving the "baseline" for the points in exam, it seems that attitude has the biggest correlation between exam points. If attitude rises one unit, then exam points increase by 3.4 units given that all other variables stay the same. The effect of stra and surf is below one. The importance of attitude can also be seen in the last column where the statistical significance of the coefficient is given. The three stars *** indicate high statistical significance, i.e. the coefficient differs from zero and thus has a relationship with the target variable. In general, the P-test value shown here tells the propability of the coefficient being zero. 
+
+Let's drop surf (highest propability) to see if it improves the fitting:
+```{r}
+# create a regression model with multiple explanatory variables
+my_model2 <- lm(points ~ attitude + stra, data = learning2014)
+# print out a summary of the model
+summary(my_model2)
+```
+Leaving out surface learning increases the significance of the remaining variables (decreased values in P-value column). However, the value for strategic learning (stra) is still relatively high (debatable). As it is less than < 0.10, let's keep it in the model. So we have found our final model.
+
+
+## Analyzing the fitted model
+
+Our final model is thus
+
+> exam points = 8.97 + 3.47 x attitude + 0.91 x stra
+
+This means that with one unit increase in attitude exam points increase by 3.47 points (stra being unchanged) and with one unit increase in strategic learning (stra) the exam points increase by 0.91. The baseline for exam points is 8.97 (the y-intercept). Now this is the systemic part (no error).
+
+The numbers at the end of the multiple regression summary can be explained succinctly as:
+
+* **Residual Standard Error**: Standard deviation of residuals / errors of the regression model.
+* **Multiple R-Squared**: Percent of the variance of *exam* intact after subtracting the error of the model.
+* **Adjusted R-Squared**: Same as multiple R-Squared but takes into account the number of samples and variables.
+
+So adjusted R-squared tells how well the model fits the data, i.e. the percentage of the dependent variable variation that the linear model explains (ranging between 0 and 1). The R-squared seen here (roughly 0.20) is quite low so there is probably some problematic patterns in the residual plots. At least the residuals are not very close to the regression line. That's why you cannot rely on the R-squared number alone but a visual inspection is a must!
+
+
+## Model validity and diagnostic plots
+
+
+```{r}
+# drawing diagnostic plots using the plot() function. Choose the plots 1, 2 and 5:
+par(mfrow = c(2,2))
+plot(my_model2, which=c(1,2,5))
+```
+
+
+A statistical model always include **assumptions** which describe the data generation process. In this linear regression case we assume
+
+* **linearity**, i.e. the target variable can be modelled as a linear combination of the model parameters
+* the **errors** are normally distributed, are not correlated and have constant variance (the size of the given error does not depend on the explanatory variables)
+
+These assumptions can be checked through analyzing residuals.
+
+* **Residuals vs. model predictions i.e. fitted values**: for analyzing constant variance of errors. "Any pattern in the plot implies a problem with the assumptions."
+* **QQ-plot**: for analyzing the normality of errors. "The better residuals are located on the identity line, the better the normality assumption holds."
+* **Leverage**: for analyzing the impact of a single observation on the model. "The outliers have high impact."
+
+In residuals vs. fitted we can see the source of the low R-squared value: the residuals are not very close to the regression line (note y-axis scale). However, they seem to describe the trend in observations well since there is no noticeable pattern. QQ-plot also shows that the residuals are nicely located on the line, i.e. the normality assumption holds. Residuals vs. leverage shows some points at the right hand side of the plot but the x-axis scaling (max leverage value of 0.05) is still quite small, so no problems here either. All in all, it seems our multiple regression model nicely describes the data and all the assumptions hold.
+
+With the model validated, now we could use our regression model to **predict** the target variable behavior!
