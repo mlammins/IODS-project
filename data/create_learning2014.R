@@ -77,10 +77,12 @@ write.csv(learning2014, file="./data/learning2014.csv", row.names=FALSE) # try w
 txt <- read.table("./data/learning2014.txt", header = TRUE)
 csv <- read.csv("./data/learning2014.csv")
 # Check to see match 
+# compare structures
 str(txt)
 str(csv)
 str(learning2014)
+# compare 6 first lines
 head(txt)
 head(csv)
 head(learning2014)
-# seems the same
+# str and head seem the same
