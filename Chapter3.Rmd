@@ -64,27 +64,133 @@ The grades G1, G2 and G3 are related to the course subject, Math or Portuguese. 
 
 The purpose of the analysis is to study the relationships between high/low alcohol consumption and some of the other variables in the data. Out of the many variables present,  **parent's cohabitation status**, **mother's education**, **quality of family relationships** and the **number of school absences** were chosen. Thus the study hypothesis are as follows:
 
-<<<<<<< HEAD
-* Hypothesis 1: If the parents are living apart (Pstatus), the alcohol consumption (high_use) is higher
+
+* Hypothesis 1: If the parents are living apart (Pstatus='A'), the alcohol consumption (high_use) is higher
 * Hypothesis 2: The higher the mother's education (Medu), the lower the alcohol consumption (high_use)
 * Hypothesis 3: The higher the quality of family relationships (famrel), the lower the alcohol consumption (high_use)
 * Hypothesis 4: The higher the number of school absences (absences), the higher the alcohol consumption (high_use)
 
 Note! Now the target variable high_use is a binary variable (TRUE=1, FALSE=0) so we must use logistic regression.
 
-## 3.3 Numerical and graphical exploration of hypothesis
-Let's try modelling the target variable alc_use as a function of our chosen variables.
-```{r}
+
+## 3.3 Numerical and graphical exploration
+Before making logistic regression, let's explore the distribution of chosen variables and their connection to the target variable numerically and graphically. First, let's take a look at **variable distributions**:
+```{r message=FALSE}
 library(dplyr);
-alc_hypothesis <- select(alc, Pstatus, Medu, famrel, absences, alc_use, high_use)
-library(ggplot2);
-library(GGally);
-p <- ggpairs(alc_hypothesis, mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
-p # graphical summary
-summary(alc_hypothesis) # numerical summary
+# use dplyr to make a smaller dataset and include all chosen variables
+alc_test <- select(alc, Pstatus, Medu, famrel, absences, alc_use, high_use)
+# change Pstatus from char to factor
+alc_test$Pstatus <- as.factor(alc_test$Pstatus)
+# numerical summary of chosen variables
+summary(alc_test[-c(5,6)])
+# graphical exploration of variable distribution
+par(mfrow = c(2,2))
+#
+barplot(table(alc_test$Pstatus), main="Distribution of Pstatus")
+barplot(table(alc_test$Medu), main="Distribution of Medu")
+barplot(table(alc_test$famrel), main="Distribution of famrel")
+barplot(table(alc_test$absences), main="Distribution of absences")
 ```
 
-fef
+From the data we can see that the vast majority of participants are living together with their parents (T). Also, most of the participants have good family relations (famrel=4) and the number of absences is relatively small (75 % less than 6). Mother's education is almost evenly distributed among variable values not counting zero. 
+
+Out of curiosity, let's see how the **alcohol consumption** is distributed.
+```{r}
+summary(alc_test[c(5,6)])
+par(mfrow = c(1,2))
+barplot(table(alc_test$alc_use), main="Distribution of alc_use")
+barplot(table(alc_test$high_use), main="Distribution of high_use")
+```
+
+It seems that only about one third of the participants use alcohol in high volumes. To better grasp the situation, here also the alcohol use (alc_use, numeric from 1 to 5) is shown instead of only the binary variable high use (high_use, TRUE if alc_use > 2).
+
+Now let's see what is the relation of our chosen variables to alcohol consumption. Here also the numerical alc_use is used.
+
+```{r}
+par(mfrow = c(2,2))
+boxplot(alc_use ~ Pstatus, data = alc)
+boxplot(alc_use ~ Medu, data=alc)
+boxplot(alc_use ~ famrel, data=alc)
+boxplot(alc_use ~ absences, data=alc)
+```
+
+These boxplots give a rough idea of the relationships between variables and the target variable:
+
+* **Pstatus vs. alc_use**: Roughly the same Q1 to Q3 area, but the median is smaller in A group. This is contrary to what was hypothesized.
+* **Medu vs. alc_use**: Certainly group 0 has the greatest median for alc_use and the trend seems to go down as Medu increases, but group 3 and 4 do have big variability in values (Q1-Q3 cover a large area).
+* **famrel vs. alc_use**: Nothing conclusive on the hypothesis. Excellent family relations (famrel=5) seems to protect from high alcohol consumption (smaller median, smaller Q1-Q3 area).
+* **absences vs. alc_use**: Alcohol use seems to increase with absences which supports the hypothesis.
+
+
+## 3.4 Logistic regression - the model
+
+Time to form a mathematically rigorous model using logistic regression! Note that Pstatus will be addressed here as factor. To summarize:
+
+Target variable = high_use 
+
+Chosen variables: Pstatus, Medu, famrel, absences
+
+```{r message=FALSE}
+m <- glm(high_use ~ Pstatus+Medu+famrel+absences, data = alc_test, family ="binomial")
+# print out a summary of the model
+summary(m)
+```
+
+The most important insight from the model summary is the coefficient section. Using the estimated coefficients, **the obtained model** is
+
+> high_use $= -0.45+0.17 \times PstatusT-0.01 \times Medu-0.24 \times famrel+0.09 \times absences$
+
+Since the target valuable high_use is binary, it has only values 0 (as FALSE or "failure") and 1 (as TRUE or "success) in modelling sense. The coefficients of the fitted model can be thus interpreted as
+
+* **PstatusP**: if Pstatus=A, then PstatusT=0 and the coefficient is -0.45 meaning parents living apart actually lessens the probability of high alcohol use. If Pstatus=T, then the effect is -0.45+0.17=-0.28 which is still negative but not as much as with Pstatus=A.
+* **Medu**: higher level of mother's education lessens the probability for high alcohol use but the effect is quite negligible.
+* **famrel**: negative coefficient means high value for famrel lessens the probability of high_use.
+* **absences**: positive value for coefficient means that increased number of absences increases the probability of high_use
+
+Of the variables, only famrel and absences were found to be statistically significant on 0.05 and 0 levels, respectively.  
+
+***
+
+The model coefficients can also be interpreted as odds ratio.
+
+>**Odds**: the ratio of expected "successes" to "failures", i.e. $\frac{p}{1-p}$ with value ranging from 0 to infinity.   
+
+So higher odds correspond to a higher probability of success. They are an alternative way of expressing probabilities. Let's calculate the odds ratios and confidence intervals for the coefficients.
+
+```{r message=FALSE}
+# print out the coefficients of the model
+coef(m)
+
+# compute odds ratios (OR)
+OR <- coef(m) %>% exp
+# compute confidence intervals (CI)
+CI <- confint(m) %>% exp
+# print out the odds ratios with their confidence intervals
+cbind(OR, CI)
+```
+
+Odds ratio can be used to quantify the relationship between our variable and the target variable. Odds higher than 1 mean that the variable is *positively associated* with "success". The odds ratio of our variables can be interpreted as
+
+* **Pstatus**: is connected to intercept and PstatusT as described above. Now the odds ratio for intercept is less than 1 meaning negative association with high alcohol use. On the other hand, PstatusT has positive association (greater than 1). But both have a large 95 % CI in which number 1 is included, so the statistical significance is not strong.
+* **Medu**: the variable is very close to 1 (neither positive nor negative association) with 95 % CI including the number 1 so no statistical significance.
+* **famrel**: less than 1 with 95 % CI upper end just barely greater than 1. Thus has a somewhat significant negative association with the target variable.
+* **absences**: greater than 1 and 95 % CI interval entirely above 1. Positive association with strong statistical significance.
+
+***
+
+**Comparison of the results with our hypotheses**: 
+
+* Hypothesis 1: Pstatus=A implies high_use. The results are completely contrary; parents living together has a slightly bigger probability of high alcohol use than parents living apart.
+* Hypothesis 2: The higher Medu implies no high_use. The results show that while high mother's education does correlate with lower alcohol use, the effect is negligible.
+* Hypothesis 3: Higher famrel implies no high_use. This hypothesis holds; higher quality of family relations does imply lower alcohol consumption.
+* Hypothesis 4: Higher absences implies high_use. The hypothesis hold. This is, in fact, the most statistically significant independent variable in the model.
+
+
+## 3.5 Predictive power of the model
+
+
+Finale
+
 ```{r}
 library(dplyr)
 m <- glm(high_use ~ famrel, data = alc, family ="binomial")
@@ -164,17 +270,4 @@ cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
 
 # average number of wrong predictions in the cross validation
 cv$delta[1]
-
-=======
-* Hypothesis 1: If the parents are living apart (Pstatus), the alcohol consumption (alc_use) is higher
-* Hypothesis 2: The higher the mother's education (Medu), the lower the alcohol consumption (alc_use)
-* Hypothesis 3: The higher the quality of family relationships (famrel), the lower the alcohol consumption (alc_use)
-* Hypothesis 4: The higher the number of school absences (absences), the higher the alcohol consumption (alc_use)
-
-
-## 3.3 Numerical and graphical exploration of hypothesis
-
-```{r}
-#summary(alc) # numerical summary
->>>>>>> 9f0da12477f44b5e09947a52f6d262392212e3a1
 ```
