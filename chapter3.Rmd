@@ -147,7 +147,7 @@ Since the target valuable high_use is binary, it has only values 0 (as FALSE or 
 * **famrel**: negative coefficient means high value for famrel lessens the probability of high_use.
 * **absences**: positive value for coefficient means that increased number of absences increases the probability of high_use
 
-Of the variables, only famrel and absences were found to be statistically significant on 0.05 and 0 levels, respectively.  
+Of the variables, only famrel and absences were found to be statistically significant on 0.05 and 0.001 levels, respectively.  
 
 ***
 
@@ -171,10 +171,10 @@ cbind(OR, CI)
 
 Odds ratio can be used to quantify the relationship between our variable and the target variable. Odds higher than 1 mean that the variable is *positively associated* with "success". The odds ratio of our variables can be interpreted as
 
-* **Pstatus**: is connected to intercept and PstatusT as described above. Now the odds ratio for intercept is less than 1 meaning negative association with high alcohol use. On the other hand, PstatusT has positive association (greater than 1). But both have a large 95 % CI in which number 1 is included, so the statistical significance is not strong.
-* **Medu**: the variable is very close to 1 (neither positive nor negative association) with 95 % CI including the number 1 so no statistical significance.
+* **Pstatus**: is connected to intercept and PstatusT as described above. Now the odds ratio for intercept is less than 1 meaning negative association with high alcohol use. On the other hand, PstatusT has positive association (greater than 1). But both have a large 95 % CI in which number 1 is included, so the significance is not strong.
+* **Medu**: the variable is very close to 1 (neither positive nor negative association) with 95 % CI including the number 1 so no significance.
 * **famrel**: less than 1 with 95 % CI upper end just barely greater than 1. Thus has a somewhat significant negative association with the target variable.
-* **absences**: greater than 1 and 95 % CI interval entirely above 1. Positive association with strong statistical significance.
+* **absences**: greater than 1 and 95 % CI interval entirely above 1. Positive association with strong significance.
 
 ***
 
@@ -183,91 +183,66 @@ Odds ratio can be used to quantify the relationship between our variable and the
 * Hypothesis 1: Pstatus=A implies high_use. The results are completely contrary; parents living together has a slightly bigger probability of high alcohol use than parents living apart.
 * Hypothesis 2: The higher Medu implies no high_use. The results show that while high mother's education does correlate with lower alcohol use, the effect is negligible.
 * Hypothesis 3: Higher famrel implies no high_use. This hypothesis holds; higher quality of family relations does imply lower alcohol consumption.
-* Hypothesis 4: Higher absences implies high_use. The hypothesis hold. This is, in fact, the most statistically significant independent variable in the model.
+* Hypothesis 4: Higher absences implies high_use. The hypothesis hold. This is, in fact, the most significant independent variable in the model.
 
 
 ## 3.5 Predictive power of the model
 
+Let's improve our model by discarding the most insignificant variables, Pstatus and Medu. Now the final model has only variables famrel and absences.
 
-Finale
+```{r message=FALSE}
+# fix the model
+m2 <- glm(high_use ~ famrel+absences, data = alc_test, family ="binomial")
+# print out a summary of the model
+summary(m2) 
+```
+
+It seems that the significance of variables famrel and absences has increased slightly compared to the original model. However, the Pr(>|z|) values are almost the same and we have a simpler model than before, so this is an improvement.
+
+Let's use the improved model and **predict** high_use values of an individual.
 
 ```{r}
-library(dplyr)
-m <- glm(high_use ~ famrel, data = alc, family ="binomial")
-
-# print out a summary of the model
-summary(m)
-
-# print out the coefficients of the model
-coef(m)
-
-
-# compute odds ratios (OR)
-OR <- coef(m) %>% exp
-
-# compute confidence intervals (CI)
-CI <- confint(m) %>% exp
-
-# print out the odds ratios with their confidence intervals
-cbind(OR, CI)
-
-# fit the model
-m <- glm(high_use ~ failures + absences + sex, data = alc, family = "binomial")
-
 # predict() the probability of high_use
-probabilities <- predict(m, type = "response")
-
-# add the predicted probabilities to 'alc'
-alc <- mutate(alc, probability = probabilities)
-
+probabilities <- predict(m2, type = "response")
+# add the predicted probabilities to 'alc_test'
+alc_test <- mutate(alc_test, probability = probabilities)
 # use the probabilities to make a prediction of high_use
-alc <- mutate(alc, prediction = probabilities>0.5)
-
+alc_test <- mutate(alc_test, prediction = probabilities>0.5)
 # see the last ten original classes, predicted probabilities, and class predictions
-select(alc, failures, absences, sex, high_use, probability, prediction) %>% tail(10)
-
+select(alc_test, famrel,absences, high_use, probability, prediction) %>% tail(10)
 # tabulate the target variable versus the predictions
-select(alc, high_use, prediction) %>% table()
+select(alc_test, high_use, prediction) %>% table()
 
-# alc is available
-
-# access dplyr and ggplot2
-library(dplyr); library(ggplot2)
-
-# initialize a plot of 'high_use' versus 'probability' in 'alc'
-g <- ggplot(alc, aes(x =probability, y = high_use, col=prediction))
+library(ggplot2)
+# initialize a plot of 'high_use' versus 'probability' in 'alc_test'
+g <- ggplot(alc_test, aes(x =probability, y = high_use, col=prediction))
 
 # define the geom as points and draw the plot
 g+geom_point()
 
 # tabulate the target variable versus the predictions
-table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table() %>% addmargins()
-
-# the logistic regression model m and dataset alc with predictions are available
+table(high_use = alc_test$high_use, prediction = alc_test$prediction) %>% prop.table() %>% addmargins()
 
 # define a loss function (mean prediction error)
 loss_func <- function(class, prob) {
   n_wrong <- abs(class - prob) > 0.5
   mean(n_wrong)
 }
-
 # call loss_func to compute the average number of wrong predictions in the (training) data
-loss_func(class = alc$high_use, prob = alc$probability)
-# the logistic regression model m and dataset alc (with predictions) are available
+loss_func(class = alc_test$high_use, prob = alc_test$probability)
+```
 
-# define a loss function (average prediction error)
-loss_func <- function(class, prob) {
-  n_wrong <- abs(class - prob) > 0.5
-  mean(n_wrong)
-}
+To interpret the result, the model ends up predicting wrong 29 % of the time. There is much room for improvement here although it is better than just guessing (50-50 chance). So the model is definitely better than nothing.
 
-# compute the average number of wrong predictions in the (training) data
-loss_func(alc$high_use,prob=alc$probability)
+## 3.6 10-fold cross-validation of the model
 
+```{r}
 # K-fold cross-validation
 library(boot)
-cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
+cv <- cv.glm(data = alc_test, cost = loss_func, glmfit = m2, K = 10)
 
 # average number of wrong predictions in the cross validation
 cv$delta[1]
 ```
+
+The prediction error obtained here is larger than in the model introduced in DataCamp (prediction error of 0.26). Choosing more significant variables in the model would improve the predictions.
