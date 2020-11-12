@@ -1,4 +1,4 @@
-# 2. Regression and model validation
+# 2 Regression and model validation
 
 *Describe the work you have done this week and summarize your learning.*
 
@@ -6,7 +6,7 @@
 - Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
 - Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
 
-## Introducing the dataset
+## 2.1 Introducing the dataset
 
 ```{r}
 learning2014 <- read.csv("./data/learning2014.csv") # reading the analysis data
@@ -30,7 +30,7 @@ minimal amount of missing values imputed using Phases 1 and 2.
 For more information, see [https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt](https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt)
 
 
-## Graphical overview and summary of the data
+## 2.2 Graphical overview and summary of the data
 
 To get the idea of the data, let's make a graphical summary of the variables with females (red) and males (blue):
 ```{r}
@@ -43,7 +43,7 @@ summary(learning2014) # numerical summary
 Taking a look at the graphical overview, the distribution for female (red) and male (blue) values seems to be relatively similar in all categories. Females seem to have a slightly higher values in surface learning (surf) and strategic learning (stra) and slighly lower values in attitude. The numerical summary of all data (not filtered by gender) shows that the majority of participants is young (under 30 years of age).
 
 
-## Fitting a regression model
+## 2.3 Fitting a regression model
 
 Next, let's test if there is correlation between attitude, strategic learning (stra) and surface learning tendency (surf) with the number of point obtained from the exam:
 ```{r}
@@ -65,7 +65,7 @@ summary(my_model2)
 Leaving out surface learning increases the significance of the remaining variables (decreased values in P-value column). However, the value for strategic learning (stra) is still relatively high (debatable). As it is less than < 0.10, let's keep it in the model. So we have found our final model.
 
 
-## Analyzing the fitted model
+## 2.4 Analyzing the fitted model
 
 Our final model is thus
 
@@ -82,7 +82,7 @@ The numbers at the end of the multiple regression summary can be explained succi
 So adjusted R-squared tells how well the model fits the data, i.e. the percentage of the dependent variable variation that the linear model explains (ranging between 0 and 1). The R-squared seen here (roughly 0.20) is quite low so there is probably some problematic patterns in the residual plots. At least the residuals are not very close to the regression line. That's why you cannot rely on the R-squared number alone but a visual inspection is a must!
 
 
-## Model validity and diagnostic plots
+## 2.5 Model validity and diagnostic plots
 
 
 ```{r}

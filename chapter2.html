@@ -414,7 +414,7 @@ summary {
 
 
 <div id="regression-and-model-validation" class="section level1">
-<h1>2. Regression and model validation</h1>
+<h1>2 Regression and model validation</h1>
 <p><em>Describe the work you have done this week and summarize your learning.</em></p>
 <ul>
 <li>Describe your work and results clearly.</li>
@@ -422,7 +422,7 @@ summary {
 <li>Assume the reader has no previous knowledge of your data or the more advanced methods you are using.</li>
 </ul>
 <div id="introducing-the-dataset" class="section level2">
-<h2>Introducing the dataset</h2>
+<h2>2.1 Introducing the dataset</h2>
 <pre class="r"><code>learning2014 &lt;- read.csv(&quot;./data/learning2014.csv&quot;) # reading the analysis data
 dim(learning2014) # number of rows and columns</code></pre>
 <pre><code>## [1] 166   7</code></pre>
@@ -445,7 +445,7 @@ dim(learning2014) # number of rows and columns</code></pre>
 <p>For more information, see <a href="https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt">https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt</a></p>
 </div>
 <div id="graphical-overview-and-summary-of-the-data" class="section level2">
-<h2>Graphical overview and summary of the data</h2>
+<h2>2.2 Graphical overview and summary of the data</h2>
 <p>To get the idea of the data, let’s make a graphical summary of the variables with females (red) and males (blue):</p>
 <pre class="r"><code>library(ggplot2);
 library(GGally);</code></pre>
@@ -473,7 +473,7 @@ p # graphical summary</code></pre>
 <p>Taking a look at the graphical overview, the distribution for female (red) and male (blue) values seems to be relatively similar in all categories. Females seem to have a slightly higher values in surface learning (surf) and strategic learning (stra) and slighly lower values in attitude. The numerical summary of all data (not filtered by gender) shows that the majority of participants is young (under 30 years of age).</p>
 </div>
 <div id="fitting-a-regression-model" class="section level2">
-<h2>Fitting a regression model</h2>
+<h2>2.3 Fitting a regression model</h2>
 <p>Next, let’s test if there is correlation between attitude, strategic learning (stra) and surface learning tendency (surf) with the number of point obtained from the exam:</p>
 <pre class="r"><code>library(ggplot2)
 # create a regression model with multiple explanatory variables
@@ -528,7 +528,7 @@ summary(my_model2)</code></pre>
 <p>Leaving out surface learning increases the significance of the remaining variables (decreased values in P-value column). However, the value for strategic learning (stra) is still relatively high (debatable). As it is less than &lt; 0.10, let’s keep it in the model. So we have found our final model.</p>
 </div>
 <div id="analyzing-the-fitted-model" class="section level2">
-<h2>Analyzing the fitted model</h2>
+<h2>2.4 Analyzing the fitted model</h2>
 <p>Our final model is thus</p>
 <blockquote>
 <p>exam points = 8.97 + 3.47 x attitude + 0.91 x stra</p>
@@ -543,7 +543,7 @@ summary(my_model2)</code></pre>
 <p>So adjusted R-squared tells how well the model fits the data, i.e. the percentage of the dependent variable variation that the linear model explains (ranging between 0 and 1). The R-squared seen here (roughly 0.20) is quite low so there is probably some problematic patterns in the residual plots. At least the residuals are not very close to the regression line. That’s why you cannot rely on the R-squared number alone but a visual inspection is a must!</p>
 </div>
 <div id="model-validity-and-diagnostic-plots" class="section level2">
-<h2>Model validity and diagnostic plots</h2>
+<h2>2.5 Model validity and diagnostic plots</h2>
 <pre class="r"><code># drawing diagnostic plots using the plot() function. Choose the plots 1, 2 and 5:
 par(mfrow = c(2,2))
 plot(my_model2, which=c(1,2,5))</code></pre>
