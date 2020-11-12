@@ -64,6 +64,7 @@ The grades G1, G2 and G3 are related to the course subject, Math or Portuguese. 
 
 The purpose of the analysis is to study the relationships between high/low alcohol consumption and some of the other variables in the data. Out of the many variables present,  **parent's cohabitation status**, **mother's education**, **quality of family relationships** and the **number of school absences** were chosen. Thus the study hypothesis are as follows:
 
+<<<<<<< HEAD
 * Hypothesis 1: If the parents are living apart (Pstatus), the alcohol consumption (high_use) is higher
 * Hypothesis 2: The higher the mother's education (Medu), the lower the alcohol consumption (high_use)
 * Hypothesis 3: The higher the quality of family relationships (famrel), the lower the alcohol consumption (high_use)
@@ -164,4 +165,16 @@ cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
 # average number of wrong predictions in the cross validation
 cv$delta[1]
 
+=======
+* Hypothesis 1: If the parents are living apart (Pstatus), the alcohol consumption (alc_use) is higher
+* Hypothesis 2: The higher the mother's education (Medu), the lower the alcohol consumption (alc_use)
+* Hypothesis 3: The higher the quality of family relationships (famrel), the lower the alcohol consumption (alc_use)
+* Hypothesis 4: The higher the number of school absences (absences), the higher the alcohol consumption (alc_use)
+
+
+## 3.3 Numerical and graphical exploration of hypothesis
+
+```{r}
+#summary(alc) # numerical summary
+>>>>>>> 9f0da12477f44b5e09947a52f6d262392212e3a1
 ```
