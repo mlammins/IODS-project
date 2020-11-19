@@ -29,7 +29,7 @@ dim(learning2014) # number of rows and columns
 str(learning2014) # type of data
 ```
  
-The learning dataset used in this exercise consists of 166 observations and 7 variables. Variables deep, stra and surf were calculated based on several Likert scale questions (from 1 to 5). Variable names and short descriptions:
+The learning dataset used in this exercise consists of 166 observations and 7 variables. Variables `deep`, `stra` and `surf` were calculated based on several Likert scale questions (from 1 to 5). Variable names and short descriptions:
 
 1. gender - Gender: M (Male), F (Female)
 2. age - Age (in years) derived from the date of birth
@@ -54,7 +54,7 @@ Taking a look at the graphical overview, the distribution for female (red) and m
 
 ## 2.3 Fitting a regression model
 
-Next, let's test if there is correlation between attitude, strategic learning (stra) and surface learning tendency (surf) with the number of point obtained from the exam:
+Next, let's test if there is correlation between attitude, strategic learning (`stra`) and surface learning tendency (`surf`) with the number of points obtained from the exam:
 ```{r}
 library(ggplot2)
 # create a regression model with multiple explanatory variables
@@ -62,16 +62,16 @@ my_model <- lm(points ~ attitude + stra + surf, data = learning2014)
 # print out a summary of the model
 summary(my_model)
 ```
-Coefficients table gives an interpretation of the model. Intecept giving the "baseline" for the points in exam, it seems that attitude has the biggest correlation between exam points. If attitude rises one unit, then exam points increase by 3.4 units given that all other variables stay the same. The effect of stra and surf is below one. The importance of attitude can also be seen in the last column where the statistical significance of the coefficient is given. The three stars *** indicate high statistical significance, i.e. the coefficient differs from zero and thus has a relationship with the target variable. In general, the P-test value shown here tells the propability of the coefficient being zero. 
+Coefficients table gives an interpretation of the model. Intercept giving the "baseline" for the points in exam, it seems that attitude has the biggest correlation between exam points. If attitude rises one unit, then exam points increase by 3.4 units given that all other variables stay the same. The effect of `stra` and `surf` is below one. The importance of `attitude` can also be seen in the last column where the statistical significance of the coefficient is given. The three stars *** indicate high statistical significance, i.e. the coefficient differs from zero and thus has a relationship with the target variable. In general, the P-test value shown here tells the propability of the coefficient being zero. 
 
-Let's drop surf (highest propability) to see if it improves the fitting:
+Let's drop `surf` (highest propability) to see if it improves the fitting:
 ```{r}
 # create a regression model with multiple explanatory variables
 my_model2 <- lm(points ~ attitude + stra, data = learning2014)
 # print out a summary of the model
 summary(my_model2)
 ```
-Leaving out surface learning increases the significance of the remaining variables (decreased values in P-value column). However, the value for strategic learning (stra) is still relatively high (debatable). As it is less than < 0.10, let's keep it in the model. So we have found our final model.
+Leaving out surface learning increases the significance of the remaining variables (decreased values in P-value column). However, the value for strategic learning (`stra`) is still relatively high (debatable). As it is less than < 0.10, let's keep it in the model. So we have found our final model.
 
 
 ## 2.4 Analyzing the fitted model
@@ -80,7 +80,7 @@ Our final model is thus
 
 > exam points = 8.97 + 3.47 x attitude + 0.91 x stra
 
-This means that with one unit increase in attitude exam points increase by 3.47 points (stra being unchanged) and with one unit increase in strategic learning (stra) the exam points increase by 0.91. The baseline for exam points is 8.97 (the y-intercept). Now this is the systemic part (no error).
+This means that with one unit increase in attitude exam points increase by 3.47 points (stra being unchanged) and with one unit increase in strategic learning (`stra`) the exam points increase by 0.91. The baseline for exam points is 8.97 (the y-intercept). Now this is the systemic part (no error).
 
 The numbers at the end of the multiple regression summary can be explained succinctly as:
 

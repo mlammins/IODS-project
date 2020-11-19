@@ -124,7 +124,7 @@ These boxplots give a rough idea of the relationships between variables and the 
 
 ## 3.4 Logistic regression - the model
 
-Time to form a mathematically rigorous model using logistic regression! Note that Pstatus will be addressed here as factor. To summarize:
+Time to form a mathematically rigorous model using logistic regression! Note that Pstatus will be addressed here as [factor](https://stats.stackexchange.com/questions/60817/significance-of-categorical-predictor-in-logistic-regression). To summarize:
 
 Target variable = high_use 
 

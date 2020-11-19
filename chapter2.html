@@ -441,7 +441,7 @@ dim(learning2014) # number of rows and columns</code></pre>
 ##  $ stra    : num  3.38 2.75 3.62 3.12 3.62 ...
 ##  $ surf    : num  2.58 3.17 2.25 2.25 2.83 ...
 ##  $ points  : int  25 12 24 10 22 21 21 31 24 26 ...</code></pre>
-<p>The learning dataset used in this exercise consists of 166 observations and 7 variables. Variables deep, stra and surf were calculated based on several Likert scale questions (from 1 to 5). Variable names and short descriptions:</p>
+<p>The learning dataset used in this exercise consists of 166 observations and 7 variables. Variables <code>deep</code>, <code>stra</code> and <code>surf</code> were calculated based on several Likert scale questions (from 1 to 5). Variable names and short descriptions:</p>
 <ol style="list-style-type: decimal">
 <li>gender - Gender: M (Male), F (Female)</li>
 <li>age - Age (in years) derived from the date of birth</li>
@@ -482,7 +482,7 @@ p # graphical summary</code></pre>
 </div>
 <div id="fitting-a-regression-model" class="section level2">
 <h2>2.3 Fitting a regression model</h2>
-<p>Next, let’s test if there is correlation between attitude, strategic learning (stra) and surface learning tendency (surf) with the number of point obtained from the exam:</p>
+<p>Next, let’s test if there is correlation between attitude, strategic learning (<code>stra</code>) and surface learning tendency (<code>surf</code>) with the number of points obtained from the exam:</p>
 <pre class="r"><code>library(ggplot2)
 # create a regression model with multiple explanatory variables
 my_model &lt;- lm(points ~ attitude + stra + surf, data = learning2014)
@@ -508,8 +508,8 @@ summary(my_model)</code></pre>
 ## Residual standard error: 5.296 on 162 degrees of freedom
 ## Multiple R-squared:  0.2074, Adjusted R-squared:  0.1927 
 ## F-statistic: 14.13 on 3 and 162 DF,  p-value: 3.156e-08</code></pre>
-<p>Coefficients table gives an interpretation of the model. Intecept giving the “baseline” for the points in exam, it seems that attitude has the biggest correlation between exam points. If attitude rises one unit, then exam points increase by 3.4 units given that all other variables stay the same. The effect of stra and surf is below one. The importance of attitude can also be seen in the last column where the statistical significance of the coefficient is given. The three stars *** indicate high statistical significance, i.e. the coefficient differs from zero and thus has a relationship with the target variable. In general, the P-test value shown here tells the propability of the coefficient being zero.</p>
-<p>Let’s drop surf (highest propability) to see if it improves the fitting:</p>
+<p>Coefficients table gives an interpretation of the model. Intercept giving the “baseline” for the points in exam, it seems that attitude has the biggest correlation between exam points. If attitude rises one unit, then exam points increase by 3.4 units given that all other variables stay the same. The effect of <code>stra</code> and <code>surf</code> is below one. The importance of <code>attitude</code> can also be seen in the last column where the statistical significance of the coefficient is given. The three stars *** indicate high statistical significance, i.e. the coefficient differs from zero and thus has a relationship with the target variable. In general, the P-test value shown here tells the propability of the coefficient being zero.</p>
+<p>Let’s drop <code>surf</code> (highest propability) to see if it improves the fitting:</p>
 <pre class="r"><code># create a regression model with multiple explanatory variables
 my_model2 &lt;- lm(points ~ attitude + stra, data = learning2014)
 # print out a summary of the model
@@ -533,7 +533,7 @@ summary(my_model2)</code></pre>
 ## Residual standard error: 5.289 on 163 degrees of freedom
 ## Multiple R-squared:  0.2048, Adjusted R-squared:  0.1951 
 ## F-statistic: 20.99 on 2 and 163 DF,  p-value: 7.734e-09</code></pre>
-<p>Leaving out surface learning increases the significance of the remaining variables (decreased values in P-value column). However, the value for strategic learning (stra) is still relatively high (debatable). As it is less than &lt; 0.10, let’s keep it in the model. So we have found our final model.</p>
+<p>Leaving out surface learning increases the significance of the remaining variables (decreased values in P-value column). However, the value for strategic learning (<code>stra</code>) is still relatively high (debatable). As it is less than &lt; 0.10, let’s keep it in the model. So we have found our final model.</p>
 </div>
 <div id="analyzing-the-fitted-model" class="section level2">
 <h2>2.4 Analyzing the fitted model</h2>
@@ -541,7 +541,7 @@ summary(my_model2)</code></pre>
 <blockquote>
 <p>exam points = 8.97 + 3.47 x attitude + 0.91 x stra</p>
 </blockquote>
-<p>This means that with one unit increase in attitude exam points increase by 3.47 points (stra being unchanged) and with one unit increase in strategic learning (stra) the exam points increase by 0.91. The baseline for exam points is 8.97 (the y-intercept). Now this is the systemic part (no error).</p>
+<p>This means that with one unit increase in attitude exam points increase by 3.47 points (stra being unchanged) and with one unit increase in strategic learning (<code>stra</code>) the exam points increase by 0.91. The baseline for exam points is 8.97 (the y-intercept). Now this is the systemic part (no error).</p>
 <p>The numbers at the end of the multiple regression summary can be explained succinctly as:</p>
 <ul>
 <li><strong>Residual Standard Error</strong>: Standard deviation of residuals / errors of the regression model.</li>

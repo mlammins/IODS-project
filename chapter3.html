@@ -577,7 +577,7 @@ boxplot(alc_use ~ absences, data=alc)</code></pre>
 </div>
 <div id="logistic-regression---the-model" class="section level2">
 <h2>3.4 Logistic regression - the model</h2>
-<p>Time to form a mathematically rigorous model using logistic regression! Note that Pstatus will be addressed here as factor. To summarize:</p>
+<p>Time to form a mathematically rigorous model using logistic regression! Note that Pstatus will be addressed here as <a href="https://stats.stackexchange.com/questions/60817/significance-of-categorical-predictor-in-logistic-regression">factor</a>. To summarize:</p>
 <p>Target variable = high_use</p>
 <p>Chosen variables: Pstatus, Medu, famrel, absences</p>
 <pre class="r"><code>m &lt;- glm(high_use ~ Pstatus+Medu+famrel+absences, data = alc_test, family =&quot;binomial&quot;)
@@ -749,7 +749,7 @@ cv &lt;- cv.glm(data = alc_test, cost = loss_func, glmfit = m2, K = 10)
 
 # average number of wrong predictions in the cross validation
 cv$delta[1]</code></pre>
-<pre><code>## [1] 0.2879581</code></pre>
+<pre><code>## [1] 0.2958115</code></pre>
 <p>The prediction error obtained here is larger than in the model introduced in DataCamp (prediction error of 0.26). Choosing more significant variables in the model would improve the predictions.</p>
 </div>
 </div>
