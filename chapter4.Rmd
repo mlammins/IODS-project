@@ -44,7 +44,7 @@ The function pairs gives a rough visual idea of the data while summary describes
 ```{r message=FALSE}
 library(dplyr)
 library(corrplot)
-pairs(Boston)
+pairs(Boston) # done as in Data Camp, but it is so small, almost impossible to see anything
 summary(Boston)
 ```
 
@@ -202,84 +202,47 @@ summary(dist_eu)
 dist_man <- dist(boston_scaled,method="manhattan")
 # look at the summary of the distances
 summary(dist_man)
+```
 
+On can see that the Manhattan distance gives much larger values compared to the Euclidean distnace. For now, however, let's use the Euclidean distance.  
+
+```{r}
 # k-means clustering
 km1 <-kmeans(boston_scaled, centers = 1)
 km2 <-kmeans(boston_scaled, centers = 2)
 km3 <-kmeans(boston_scaled, centers = 3)
 km4 <-kmeans(boston_scaled, centers = 4)
 # plot the Boston dataset with clusters
-pairs(boston_scaled, col = km1$cluster)
-pairs(boston_scaled, col = km2$cluster)
-pairs(boston_scaled, col = km3$cluster)
-pairs(boston_scaled, col = km4$cluster)
+pairs(boston_scaled, col = km1$cluster) # 1 cluster
+pairs(boston_scaled, col = km2$cluster) # 2 clusters
+pairs(boston_scaled, col = km3$cluster) # 3 clusters
+pairs(boston_scaled, col = km4$cluster) # 4 clusters
 # too general view, make smaller
-pairs(boston_scaled[,1:5], col = km3$cluster)
-pairs(boston_scaled[,6:10], col = km3$cluster)
-pairs(boston_scaled[,10:14], col = km3$cluster)
+pairs(boston_scaled[,6:10], col = km2$cluster) # 2 clusters
+pairs(boston_scaled[,6:10], col = km3$cluster) # 3 clusters
+pairs(boston_scaled[,6:10], col = km4$cluster) # 4 clusters
 ```
 
-On can see that the Manhattan distance gives much larger values compared to the Euclidean distnace. For now, let's use the Euclidean distance.  
+Different number of centers (1,2,3 or 4) were used for k-means clustering. One cluster seemed to be too few, since new clusters started appearing, however, four clusters did not bring a dramatic difference to the game  (i.e. the centroid and the clusters did not change). Thus the optimal number was found to be 2 or 3 clusters.
 
-Different number of centers (1,2,3 or 4) were used for k-means clustering. One or two clusters seemed to be too few, since new clusters started appearing, however, four clusters did not bring a dramatic difference to the game  (i.e. the centroid and the clusters did not change). Thus the optimal number was found to be 3 clusters.
-
-## 4.7 k-means
 ```{r}
-# linear discriminant analysis
-lda.fit <- lda(crime ~., data = train)
-
-# print the lda.fit object
-lda.fit
-
-# the function for lda biplot arrows
-lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
-  heads <- coef(x)
-  arrows(x0 = 0, y0 = 0, 
-         x1 = myscale * heads[,choices[1]], 
-         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
-  text(myscale * heads[,choices], labels = row.names(heads), 
-       cex = tex, col=color, pos=3)
-}
-
-# target classes as numeric
-classes <- as.numeric(train$crime)
-
-# plot the lda results
-plot(lda.fit, dimen = 2, col=classes, pch=classes)
-lda.arrows(lda.fit, myscale = 1)
-```
-
-Bonus: Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influencial linear separators for the clusters? (0-2 points to compensate any loss of points from the above exercises)
-```{r}
-
-
-# MASS, ggplot2 and Boston dataset are available
 set.seed(123)
-
 # determine the number of clusters
 k_max <- 10
-
 # calculate the total within sum of squares
-twcss <- sapply(1:k_max, function(k){kmeans(Boston, k)$tot.withinss})
+twcss <- sapply(1:k_max, function(k){kmeans(boston_scaled, k)$tot.withinss})
 
 # visualize the results
-qplot(x = 1:k_max, y = twcss, geom = 'line')
-
-# k-means clustering
-km <-kmeans(Boston, centers = 2)
-
-# plot the Boston dataset with clusters
-pairs(Boston, col = km$cluster)
-
-
+qplot(x = 1:k_max, y = twcss, geom = 'line')+scale_x_continuous(breaks = 1:10,labels=1:10)
 ```
 
+The total within sum of squares (TWSS) would indicate 2 be the optimal number, since that is the number when TWSS changes radically (from 1 to 2).
 
+## 4.7 3D LDA plot
 
-## 4.8 Bonus
-Super-Bonus: Run the code below for the (scaled) train data that you used to fit the LDA. The code creates a matrix product, which is a projection of the data points.
-
-```{r}
+```{r message=FALSE}
+# Run the code below for the (scaled) train data that you used to fit the LDA. 
+#The code creates a matrix product, which is a projection of the data points.
 model_predictors <- dplyr::select(train, -crime)
 
 # check the dimensions
@@ -289,17 +252,14 @@ dim(lda.fit$scaling)
 # matrix multiplication
 matrix_product <- as.matrix(model_predictors) %*% lda.fit$scaling
 matrix_product <- as.data.frame(matrix_product)
-```
 
-Next, install and access the plotly package. Create a 3D plot (Cool!) of the columns of the matrix product by typing the code below.
+# Next, install and access the plotly package. Create a 3D plot (**Cool!**)
+# of the columns of the matrix product by typing the code below."
 
-```{r}
 library(plotly)
 # Note! To install plotly in Linux, remember to install libcurl from terminal.
 # * deb: libcurl4-openssl-dev (Debian, Ubuntu, etc)
 # * rpm: libcurl-devel (Fedora, CentOS, RHEL)
 # * csw: libcurl_dev (Solaris)
-plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers')
+plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color=train$crime)
 ```
-
-Adjust the code: add argument color as a argument in the plot_ly() function. Set the color to be the crime classes of the train set. Draw another 3D plot where the color is defined by the clusters of the k-means. How do the plots differ? Are there any similarities? (0-3 points to compensate any loss of points from the above exercises)
