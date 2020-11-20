@@ -1,10 +1,11 @@
 # Marko Lamminsalo
-# 2020-11-15
+# 2020-11-20
 # R-script for creating dataset human 
 
 # Data source: UNDP Human Development Index (HDI)
 # Metadata available: http://hdr.undp.org/en/content/human-development-index-hdi
 # Additional Technical Metadata available: http://hdr.undp.org/sites/default/files/hdr2015_technical_notes.pdf 
+
 # The Human Development Index (HDI) is a summary measure of average achievement in key dimensions of 
 # human development: a long and healthy life, being knowledgeable and have a decent standard of living. 
 # The HDI is the geometric mean of normalized indices for each of the three dimensions.
@@ -18,83 +19,53 @@ gii <- read.csv("http://s3.amazonaws.com/assets.datacamp.com/production/course_2
 # Exploring structure and dims
 colnames(hd)
 str(hd)
-dim(hd) # 395 33
+dim(hd) # 195 8
 summary(hd)
 colnames(gii)
 str(gii)
-dim(gii) # 649 33
+dim(gii) # 195 10
 summary(gii)
 
-####
+# Renaming columns as shorter based on metadata
+# I did not find this info on meta, so making own abbreviations.
+colnames(hd)
+#[1] "HDI.Rank"                              
+#[2] "Country"                               
+#[3] "Human.Development.Index..HDI."         
+#[4] "Life.Expectancy.at.Birth"              
+#[5] "Expected.Years.of.Education"           
+#[6] "Mean.Years.of.Education"               
+#[7] "Gross.National.Income..GNI..per.Capita"
+#[8] "GNI.per.Capita.Rank.Minus.HDI.Rank"    
+colnames(hd) <- c("HDI.Rank","Country","HDI","Life.Exp","Edu.Exp",
+                  "Edu.Mean","GNI","GNI.Minus.Rank")
+#
+colnames(gii)
+#[1] "GII.Rank"                                    
+#[2] "Country"                                     
+#[3] "Gender.Inequality.Index..GII."               
+#[4] "Maternal.Mortality.Ratio"                    
+#[5] "Adolescent.Birth.Rate"                       
+#[6] "Percent.Representation.in.Parliament"        
+#[7] "Population.with.Secondary.Education..Female."
+#[8] "Population.with.Secondary.Education..Male."  
+#[9] "Labour.Force.Participation.Rate..Female."    
+#[10] "Labour.Force.Participation.Rate..Male."      
+colnames(gii) <- c("GII.Rank","Country","GII","Mar.Mor","Ado.Birth",
+                   "Parli.F","Edu2.F","Edu2.M","Labo.F","Labo.M")
+
+# Mutating gii to create 2 new variables (ratios F/M)
+gii <- mutate(gii,  Edu2.FM = Edu2.F/Edu2.M) # 
+gii <- mutate(gii, Labo.FM = Labo.F/Labo.M) # 
 
 
 # Combining the data sets with dplyr library
 library(dplyr)
-# common columns to use as identifiers
-join_by <- c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet")
-# join the two datasets by the selected identifiers
-math_por <- inner_join(math, por, by = join_by, suffix=c(".math",".por"))
-
-# Exploring the joined data
-colnames(math_por)
-glimpse(math_por)
-dim(math_por) # 382 53
-
-# Combine duplicated answers in joined data
-alc <- select(math_por, one_of(join_by)) # a new data frame with only the joined columns
-notjoined_columns <- colnames(math)[!colnames(math) %in% join_by] # the columns not used for joining the data
-notjoined_columns # print out the names of columns not used for joining
-
-# for every column name not used for joining...
-for(column_name in notjoined_columns) {
-  # select two columns from 'math_por' with the same original name
-  two_columns <- select(math_por, starts_with(column_name))
-  # select the first column vector of those two columns
-  first_column <- select(two_columns, 1)[[1]]
-  
-  # if that first column vector is numeric...
-  if(is.numeric(first_column)) {
-    # take a rounded average of each row of the two columns and
-    # add the resulting vector to the alc data frame
-    alc[column_name] <- round(rowMeans(two_columns))
-  } else { # else if it's not numeric...
-    # add the first column vector to the alc data frame
-    alc[column_name] <- first_column
-  }
-}
-
-# Exploring the new combined data
-colnames(alc)
-glimpse(alc)
-dim(alc) # 382 33
-
-# Create new column regarding alcohol use
-alc <- mutate(alc, alc_use = (Dalc + Walc) / 2) # combining weekday and weekend alcohol use
-alc <- mutate(alc, high_use = alc_use > 2) # define a new logical column 'high_use'
-
-# Explore the data
-colnames(alc)
-glimpse(alc)
-dim(alc) # 382 35
+# common column to use as identifier
+join_by <- "Country"
+# join the two datasets by the selected identifier
+human <- inner_join(hd, gii, by = join_by)
+dim(human) # 195 19
 
 # Saving the joined and modified dataset
-write.csv(alc, file="./data/alc.csv", row.names=FALSE)
-
-# Note! There appears to be error in the script above.
-# Instead of 382, there are actually 370 unique observations.
-# See:
-
-
-
-
-# https://github.com/rsund/IODS-project/blob/master/data/create_alc.R
-
-
-Data wrangling for the next week’s data! (Max 5 points)
-
-Meta file for these datasets can be seen here and here are some technical notes. (1 point)
-Explore the datasets: see the structure and dimensions of the data. Create summaries of the variables. (1 point)
-Look at the meta files and rename the variables with (shorter) descriptive names. (1 point)
-Mutate the “Gender inequality” data and create two new variables. The first one should be the ratio of Female and Male populations with secondary education in each country. (i.e. edu2F / edu2M). The second new variable should be the ratio of labour force participation of females and males in each country (i.e. labF / labM). (1 point)
-Join together the two datasets using the variable Country as the identifier. Keep only the countries in both data sets (Hint: inner join). The joined data should have 195 observations and 19 variables. Call the new joined data "human" and save it in your data folder. (1 point)
-
+write.csv(human, file="./data/human.csv", row.names=FALSE)

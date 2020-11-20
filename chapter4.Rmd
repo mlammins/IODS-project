@@ -37,93 +37,101 @@ The dataset contains 506 observations in 14 variables:
 13. lstat -- lower status of the population (percent) (numeric: from 1.73 to 37.97)
 14. medv -- median value of owner-occupied homes in \$1000s (numeric: from 5 to 50)
 
-## 4.2 Graphical overview and summary
+## 4.2 Graphical overview and summary of the data
 
-Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-2 points)
+The function pairs gives a rough visual idea of the data while summary describes the variables numerically.
 
-```{r}
+```{r message=FALSE}
 library(dplyr)
 library(corrplot)
-# explore the dataset
-str(Boston)
 pairs(Boston)
+summary(Boston)
+```
 
+Based on the numerical summary, it seems variables `crim`, `zn`, `indus`,`dis`, `rad` have quite low values while `rm`, `age` and `black` seem to have higher values. The output of pairs is very difficult to read, so let's try calculating the correlation matrix to see the relationships between the variables. The (rather large) correlation matrix is easier to interpret when visualized with corrplot-function.
+```{r}
 # calculate the correlation matrix and round it
 cor_matrix<-cor(Boston) 
 
-# print the correlation matrix
+# print the correlation matrix, kable for nicer looking table
+knitr::kable(
 cor_matrix %>% round(digits=2)
-
+)
 # visualize the correlation matrix
 corrplot(cor_matrix, method="circle", type="upper", cl.pos="b", tl.pos="d", tl.cex=0.6)
-
 ```
 
+From the correlation matrix we can see that there is a strong
 
-## 4.3 Standardizing
+* negative correlation between distance and proportion of units built before 1940, nitrogen oxide concentration and proportion of non-retail business acres (`dis`&`age`, `dis`&`nox`, `dis`&`indus`) as well as median value of home and lower status of the population (`medv`&`lstat`).
 
-    Standardize the dataset and print out summaries of the scaled data. How did the variables change? Create a categorical variable of the crime rate in the Boston dataset (from the scaled crime rate). Use the quantiles as the break points in the categorical variable. Drop the old crime rate variable from the dataset. Divide the dataset to train and test sets, so that 80% of the data belongs to the train set. (0-2 points)
+* positive correlation between property tax-rate and accessibility to radial high ways (`tax`&`rad`) among others.
+
+
+## 4.3 Standardizing and splitting data into train and test sets
     
+    
+Standardization of the data is useful when the data has large differences between their ranges or when the data is measured in different measurement units. Let's scale the `Boston` data by subtracting the column means from the corresponding columns and divide the difference with standard deviation:
+$$scaled(x) = \frac{x-mean(x)}{sd(x)}.$$
+This is one of the most popular way of standardizing data, the **Z-score**. Now all variables have a mean of zero and a standard deviation of one. Thus they are on the same scale.
+
 ```{r}
 # center and standardize variables
 boston_scaled <- scale(Boston)
-
 # summaries of the scaled variables
 summary(boston_scaled)
+```
 
+Next we shall create a categorical variable `crime` (per capita crime rate by town) from the standardized data set. Let's cut the variable by quantiles to get the high, low and middle rates of crime into their own categories. Finally, let's drop the old crime rate variable from the data set.
+    
+```{r}
 # class of the boston_scaled object
 class(boston_scaled)
-
 # change the object to data frame
 boston_scaled <- as.data.frame(boston_scaled)
-
-# MASS, Boston and boston_scaled are available
-
 # create a quantile vector of crim and print it
 bins <- quantile(boston_scaled$crim)
 bins
 
 # create a categorical variable 'crime'
-crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE)
-
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label=c("low","med_low","med_high","high"))
 # look at the table of the new factor crime
-
+table(crime)
 
 # remove original crim from the dataset
 boston_scaled <- dplyr::select(boston_scaled, -crim)
-
 # add the new categorical value to scaled data
 boston_scaled <- data.frame(boston_scaled, crime)
+```
 
-# boston_scaled is available
+In order to test the predictive power of a statistical method, let's divide the scaled Boston data set randomly into a training set (80 %) and a test set (20 %).
 
+```{r}
 # number of rows in the Boston dataset 
 n <- nrow(Boston)
-
 # choose randomly 80% of the rows
 ind <- sample(n,  size = n * 0.8)
 
 # create train set
 train <- boston_scaled[ind,]
-
 # create test set 
 test <- boston_scaled[-ind,]
-
-# save the correct classes from test data
-correct_classes <- test$crime
-
-# remove the crime variable from test data
-test <- dplyr::select(test, -crime)
-
 ```
 
-## 4.4 Fitting LDA
-    Fit the linear discriminant analysis on the train set. Use the categorical crime rate as the target variable and all the other variables in the dataset as predictor variables. Draw the LDA (bi)plot. (0-3 points)
-    
+## 4.4 Fitting the LDA
+
+The standardization was done to satisfy the conditions for using the **linear discriminant analysis** (LDA):
+
+* variables are **normally distributed** (on condition of the classes)
+
+* each variable has **the same variance**.
+
+The general idea is to reduce the dimensions by removing redundant and dependent features by transforming the features from higher dimensional space to a space with lower dimensions. 
+
+
+Now, let's fit LDA on the train set with the newly-created `crime` as the target variable and all other variables as predictor variables. The result can be visualised by the LDA (bi)plot.  
     
 ```{r}
-# MASS and train are available
-
 # linear discriminant analysis
 lda.fit <- lda(crime ~., data = train)
 
@@ -146,57 +154,104 @@ classes <- as.numeric(train$crime)
 # plot the lda results
 plot(lda.fit, dimen = 2, col=classes, pch=classes)
 lda.arrows(lda.fit, myscale = 1)
-
-
 ```
 
+Here we can see the results of the LDA. Each color represents a class of the target variable. The predictor variables are the arrows in the middle of the picture, the length and the direction of the arrow depicting the effect of the predictor. It seems that here the variables `rad`, `zn` and `nox` discriminate/separate the classes the best. 
 
-## 4.5 Predict
-    Save the crime categories from the test set and then remove the categorical crime variable from the test dataset. Then predict the classes with the LDA model on the test data. Cross tabulate the results with the crime categories from the test set. Comment on the results. (0-3 points)
-    
+## 4.5 Predicting with the LDA
+
+Now we use the built LDA model to predict the classes on the test data. LDA calculates the probability of the new observation for belonging in each of the classes and then the observation is classified to the class of the highest probability. 
+
+First, let's save the correct classes and then remove the `crime` variable.
+
 ```{r}
-# lda.fit, correct_classes and test are available
+# save the correct classes from test data
+correct_classes <- test$crime
+# remove the crime variable from test data
+test <- dplyr::select(test, -crime)
 
 # predict classes with test data
 lda.pred <- predict(lda.fit, newdata = test)
-
 # cross tabulate the results
 table(correct = correct_classes, predicted = lda.pred$class)
 ```
 
+The prediction  would have been perfect if all the values were on the diagonal. Certainly this is not the case but the largest values are on the diagonal. There seems to be some mixing with the first three classes but the last class (`high`) is most correctly predicted. This was to be expected based on the training set figure.
+
 
 ## 4.6 Distances and clustering
+    
+Different distances (e.g. Euclidean or Manhattan) are used to see if observations are similar or dissimilar with each other. Similar observations form clusters which can be found by different methods (e.g. k-means).
 
-    Reload the Boston dataset and standardize the dataset (we did not do this in the Datacamp exercises, but you should scale the variables to get comparable distances). Calculate the distances between the observations. Run k-means algorithm on the dataset. Investigate what is the optimal number of clusters and run the algorithm again. Visualize the clusters (for example with the pairs() or ggpairs() functions, where the clusters are separated with colors) and interpret the results. (0-4 points)
-```{r}
-# load MASS and Boston
+Let's find clusters on the `Boston` dataset using k-means. First, let's reload the dataset and standardize it to get comparable distances (Euclidean and Manhattan). Then let's run the k-means algorithm on the dataset.
+
+```{r message=FALSE}
+# reload Boston from MASS
 library(MASS)
-data('Boston')
+library(ggplot2)
+data('Boston');
+# center and standardize variables
+boston_scaled <- scale(Boston)
 
 # euclidean distance matrix
-dist_eu <- dist(Boston)
-
+dist_eu <- dist(boston_scaled)
 # look at the summary of the distances
 summary(dist_eu)
 
 # manhattan distance matrix
-dist_man <- dist(Boston,method="manhattan")
-
+dist_man <- dist(boston_scaled,method="manhattan")
 # look at the summary of the distances
 summary(dist_man)
-```
-
-## 4.7 k-means
-Bonus: Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influencial linear separators for the clusters? (0-2 points to compensate any loss of points from the above exercises)
-```{r}
-# Boston dataset is available
-library(ggplot2)
 
 # k-means clustering
-km <-kmeans(Boston, centers = 3)
-
+km1 <-kmeans(boston_scaled, centers = 1)
+km2 <-kmeans(boston_scaled, centers = 2)
+km3 <-kmeans(boston_scaled, centers = 3)
+km4 <-kmeans(boston_scaled, centers = 4)
 # plot the Boston dataset with clusters
-pairs(Boston, col = km$cluster)
+pairs(boston_scaled, col = km1$cluster)
+pairs(boston_scaled, col = km2$cluster)
+pairs(boston_scaled, col = km3$cluster)
+pairs(boston_scaled, col = km4$cluster)
+# too general view, make smaller
+pairs(boston_scaled[,1:5], col = km3$cluster)
+pairs(boston_scaled[,6:10], col = km3$cluster)
+pairs(boston_scaled[,10:14], col = km3$cluster)
+```
+
+On can see that the Manhattan distance gives much larger values compared to the Euclidean distnace. For now, let's use the Euclidean distance.  
+
+Different number of centers (1,2,3 or 4) were used for k-means clustering. One or two clusters seemed to be too few, since new clusters started appearing, however, four clusters did not bring a dramatic difference to the game  (i.e. the centroid and the clusters did not change). Thus the optimal number was found to be 3 clusters.
+
+## 4.7 k-means
+```{r}
+# linear discriminant analysis
+lda.fit <- lda(crime ~., data = train)
+
+# print the lda.fit object
+lda.fit
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train$crime)
+
+# plot the lda results
+plot(lda.fit, dimen = 2, col=classes, pch=classes)
+lda.arrows(lda.fit, myscale = 1)
+```
+
+Bonus: Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influencial linear separators for the clusters? (0-2 points to compensate any loss of points from the above exercises)
+```{r}
+
 
 # MASS, ggplot2 and Boston dataset are available
 set.seed(123)
