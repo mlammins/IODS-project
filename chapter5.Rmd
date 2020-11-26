@@ -1,0 +1,138 @@
+# 5 Dimensionality reduction techniques
+
+*Describe the work you have done this week and summarize your learning.*
+
+- Describe your work and results clearly. 
+- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
+- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+
+## 5.1 Introducing the dataset
+
+>This chapter's dataset originates from the United Nations Development Programme. The Human Development Index (HDI) was created for assessig the development of a country in another way than just economic growth. More information can be found on their [general data page](http://hdr.undp.org/en/content/human-development-index-hdi) and on [pdf about calculating the human development indices](http://hdr.undp.org/sites/default/files/hdr2015_technical_notes.pdf). 
+
+```{r}
+# read the human data, row names as first column
+human <- read.csv("./data/human.csv", row.names=1)
+str(human)
+```
+
+The dataset consists 155 observations (i.e. **countries**) in 8 variables: 
+
+1. Edu2.FM -- Ratio of secondary education in females compared to males (numeric: from 0.1717 to 1.4967)
+2. Labo.FM -- Ratio of labour force participation rate in females compared to males (numeric: from 0.1857 to 1.0380)
+3. Life.Exp -- Life expectancy at birth (numeric: from 49 to 83.5)
+4. Edu.Exp -- Expected years of schooling (numeric: from 5.4 to 20.2)
+5. GNI -- Gross national income per capita (numeric: from 581 to 123124)
+6. Mat.Mor-- Maternal mortality ratio (numeric: from 1 to 1100)
+7. Ado.Birth -- Adolescent birth rate (numeric: 0.6 to 71.95)
+8. Parli.F -- Percentage of female representatives in parliament (numeric: from 0 to 57.5)
+
+The data combines several indicators for the countries:
+
+* **Country**: name of the country as row name
+* **Health and knowledge**: `GNI`, `Life.Exp`, `Edu.Exp`, `Mat.Mor`, `Ado.Birth`
+* **Empowerment**: `Parli.F`, `Edu2.FM`,`Labo.FM`
+
+Most of the variable names have been shortened from the original data and two new variables (`Edu2.FM` and `Labo.FM`) were computed.
+
+## 5.2 Graphical overview and summaries of the variables
+
+```{r message=FALSE}
+library(ggplot2) # for graphics
+library(GGally)
+library(corrplot)
+library(dplyr)
+summary(human)
+ggpairs(human, upper = list(continuous = wrap("cor", family="sans"))) # graphical overview
+```
+
+There is much **skewness** present in the variable, i.e. only `Edu2.FM` and `Edu.Exp` are somewhat normally distributed. Many variables are strongly correlated as implied by the statistically significant correlation coefficients. The correlation can be visualized better with correlation plot:
+
+
+```{r message=FALSE}
+# compute the correlation matrix and visualize it with corrplot
+cor(human) %>% corrplot(type="lower") # lower correlation matrix, since symmetric
+```
+
+The correlation matrix gives us an idea of the relation of the variables, i.e. there seem to be great  
+
+* **negative correlations** between maternal mortality ratio and life expectency and expected years of schooling and ratio of secondary education in females/males (`Mat.Mor` and `Life.Exp`&`Edu.Exp`&`Edu2.FM`). Similarly with Adolescent birth rate `Ado.Birth`.  
+
+* **positive correlations** between Education expectency and Life expectency and Adolescent birth rate and Maternal mortality
+
+Percentage of female representatives in parliament (`Parli.F`) and Ratio of labour force participation rate in females compared to males (`Labo.FM`) don't seem to be correlated with any variable. There is, however, a slight correlation between them.
+
+
+## 5.3 Principal Component Analysis 
+
+```{r message=FALSE}
+###
+
+# modified human is available
+
+# standardize the variables
+human_std <- scale(human)
+
+# print out summaries of the standardized variables
+summary(human_std)
+
+# perform principal component analysis (with the SVD method)
+pca_human <- prcomp(human_std)
+
+# draw a biplot of the principal component representation and the original variables
+biplot(pca_human, choices = 1:2, cex=c(0.8,1), col=c("grey40","deeppink2"))
+
+###
+
+# pca_human, dplyr are available
+
+# create and print out a summary of pca_human
+s <- summary(pca_human)
+s
+
+# rounded percetanges of variance captured by each PC
+pca_pr <- round(100*s$importance[2, ], digits = 1)
+
+# print out the percentages of variance
+pca_pr
+
+# create object pc_lab to be used as axis labels
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+# draw a biplot
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+
+###
+
+# the tea dataset and packages FactoMineR, ggplot2, dplyr and tidyr are available
+library(tidyr)
+library(FactoMineR)
+data("tea") # Load data tea from FactoMineR package
+# column names to keep in the dataset
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+
+# select the 'keep_columns' to create a new dataset
+tea_time <- select(tea, one_of(keep_columns))
+
+# look at the summaries and structure of the data
+summary(tea_time)
+str(tea_time)
+
+# visualize the dataset
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+
+
+###
+
+# tea_time is available
+
+# multiple correspondence analysis
+mca <- MCA(tea_time, graph = FALSE)
+
+# summary of the model
+summary(mca)
+
+# visualize MCA
+plot(mca, invisible=c("ind"), habillage = "quali")
+
+```
