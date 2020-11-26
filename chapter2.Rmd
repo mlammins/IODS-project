@@ -42,10 +42,10 @@ The learning dataset used in this exercise consists of 166 observations and 7 va
 ## 2.2 Graphical overview and summary of the data
 
 To get the idea of the data, let's make a graphical summary of the variables with females (red) and males (blue):
-```{r}
+```{r message=FALSE}
 library(ggplot2);
 library(GGally);
-p <- ggpairs(learning2014, mapping = aes(col=gender, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p <- ggpairs(learning2014, mapping = aes(col=gender, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)), upper = list(continuous = wrap("cor", family="sans")))
 p # graphical summary
 summary(learning2014) # numerical summary
 ```
