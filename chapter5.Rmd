@@ -65,74 +65,112 @@ Percentage of female representatives in parliament (`Parli.F`) and Ratio of labo
 
 ## 5.3 Principal Component Analysis 
 
-```{r message=FALSE}
-###
+Principal componen analysis (**PCA**) is a statistical procedure which reduces the number of dimensions in multivariate data. Reducing dimension is essential in representing the phenomenon of interest clearly without "too much" distracting information (non-related data, noise or random error).  
 
-# modified human is available
+The idea of PCA is to *transform* the data to a new space with equal or less number of dimensions (new features). These new features are called **principal components (PC)**. The first PC captures the maximum amount of variance from the features in the original data. The second PC captures the maximum amount of variability left etc. All PC are **uncorrelated** and orthogonal to each other.  
 
-# standardize the variables
+Since **PCA is sensitive to variance**, let us make two analyses: one without and one with standardized dataset.
+
+### 5.3.1 PCA without standardization of data 
+
+```{r message=FALSE, warning=FALSE}
+# PCA on non-standardized human data (with the SVD method)
+pca_human <- prcomp(human)
+# printing summary of PCA
+s <- summary(pca_human)
+s    
+# print out rounded percetanges of variance captured by each PC
+pca_pr <- round(100*s$importance[2, ], digits = 1)
+pca_pr
+# create object pc_lab to be used as axis labels
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+# draw a biplot of the PC representation and the original variables
+biplot(pca_human, choices = 1:2, cex=c(0.8,1), col=c("grey40","deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2], caption="PC1 is the strongest")
+```
+
+### 5.3.2 PCA with standardization of data
+
+```{r message=FALSE, warning=FALSE}
+# standardize the variables by the function scale (the z-score)
 human_std <- scale(human)
-
-# print out summaries of the standardized variables
+# print out summaries of the standardized variables (mean = 0)
 summary(human_std)
 
 # perform principal component analysis (with the SVD method)
-pca_human <- prcomp(human_std)
-
-# draw a biplot of the principal component representation and the original variables
-biplot(pca_human, choices = 1:2, cex=c(0.8,1), col=c("grey40","deeppink2"))
-
-###
-
-# pca_human, dplyr are available
-
-# create and print out a summary of pca_human
-s <- summary(pca_human)
-s
-
-# rounded percetanges of variance captured by each PC
-pca_pr <- round(100*s$importance[2, ], digits = 1)
-
-# print out the percentages of variance
-pca_pr
-
+pca2_human <- prcomp(human_std)
+# printing summary of PCA
+s2 <- summary(pca2_human)
+s2    
+# print out rounded percetanges of variance captured by each PC
+pca2_pr <- round(100*s2$importance[2, ], digits = 1)
+pca2_pr
 # create object pc_lab to be used as axis labels
-pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+pc_lab2 <- paste0(names(pca2_pr), " (", pca2_pr, "%)")
+# draw a biplot of the PC representation and the original variables
+biplot(pca2_human, choices = 1:2, cex=c(0.8,1), col=c("grey40","deeppink2"), xlab = pc_lab2[1], ylab = pc_lab2[2], caption="After standardization of variables")
+```
 
-# draw a biplot
-biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+### 5.3.3 Interpreting the results
 
-###
+The results are very different based on whether or not the standardization was made.  
 
-# the tea dataset and packages FactoMineR, ggplot2, dplyr and tidyr are available
+Without normalization of data, there is practically only one PC which explains 100% of the variance in the data. The variable gross national income per capita (`GNI`) dominates the PCA due to its absolute values being 10- or even 100-fold larger than the other variables. Thus, as expected, there is a crucial need for standardization!  
+
+After standardization, the effect of other variables than just `GNI` becomes clearer. The first PC explains 53.6% of the variability and the second 16.2% covering roughly a total of 70% of the variability in the data. Out of the variables, `Parli.F` and `Labo.FM` have high positive correlation with PC2 (the angle between the y-axis is small) while all other variables have a high correlation with PC1 (x-axis).  This kind of division could be observed already in the correlation plot earlier.
+
+My personal interpretation is that PC1 in the standardized data is some general index for health and knowledge ("standard of living") while PC2 is some female empowerment in the society.
+
+## 5.4 Multiple Correspondence Analysis
+
+While PCA reduced the dimension for *continuous* variables, Multiple Correspondence Analysis (**MCA**) is an analogous method for *categorical* variables. Let's apply the MCA to `tea` dataset from the package `FactoMineR`. The tea dataset consists of tea consumption survey results from 300 tea consumers. For our purpose we will choose only six columns.
+
+```{r message=FALSE}
 library(tidyr)
 library(FactoMineR)
 data("tea") # Load data tea from FactoMineR package
 # column names to keep in the dataset
 keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
-
 # select the 'keep_columns' to create a new dataset
-tea_time <- select(tea, one_of(keep_columns))
+tea_time <- dplyr::select(tea, one_of(keep_columns))
 
 # look at the summaries and structure of the data
-summary(tea_time)
 str(tea_time)
+summary(tea_time)
+```
 
+Exploring our data reveals that we have 300 observations in 6 variables. All the variables are of type `factor` with several levels. Let's visualize the dataset.
+
+```{r message=FALSE}
 # visualize the dataset
 gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+```
 
+All of the variables have a certain dominating factor except for `sugar` which evenly divided between *sugar* and *no sugar*.  
 
-###
+Now let's perform a MCA to our `tea` dataset!
 
-# tea_time is available
-
+```{r message=FALSE}
 # multiple correspondence analysis
 mca <- MCA(tea_time, graph = FALSE)
-
 # summary of the model
 summary(mca)
+```
 
+The output of the MCA summary is somewhat lengthy. However, it contains information about  
+
+* **Eigenvalues**: the variances and the percentage of variances retained by each dimension
+
+* **Individuals**: the individuals' coordinates, the individuals contribution (%) on the dimension and the cos2 (the squared correlations) on the dimensions
+
+* **Categories**: the coordinates of the variable categories, the contribution(%) the cos2 (the squared correlations) and v.test value. The v.test follows normal distribution: if the value is below/above +/- 1.96, the coordinate is significantly different from zero.
+
+* **Categorical variables**: the squared correlation between each variable and the dimensions. If the value is close to 1 it indicates strong link with the variable and dimension.  
+
+Here it seems there is no dominating dimensions (the first and the second dimension explain only about 15% and 14% of the variation, respectively).
+
+```{r message=FALSE}
 # visualize MCA
 plot(mca, invisible=c("ind"), habillage = "quali")
-
 ```
+
+Visualizing the data does not give a better insight about the matter either. By interpreting the biggest ranges in the dimentions, the first dimension might tell about how the tea is consumed (in a tea bag vs. unpackaged) while the second dimension tells where the tea is bought (tea shop vs. chain store). The connections remain fuzzy, however. It is possible that sometimes despite all the advanced methods the end result will still remain chaotic. 
