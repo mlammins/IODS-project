@@ -6,7 +6,7 @@
 - Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
 - Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
 
-## 5.1 Introducing the dataset
+## 5.1 Introducing the dataset for PCA
 
 >This chapter's dataset originates from the United Nations Development Programme. The Human Development Index (HDI) was created for assessig the development of a country in another way than just economic growth. More information can be found on their [general data page](http://hdr.undp.org/en/content/human-development-index-hdi) and on [pdf about calculating the human development indices](http://hdr.undp.org/sites/default/files/hdr2015_technical_notes.pdf). 
 
