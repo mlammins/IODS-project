@@ -4,7 +4,8 @@ See the course diary page   <https://mlammins.github.io/IODS-project/>
 
 ***
 
-    The following backgroung information is taken from the Intorduction to Open Data Science (IODS) course page:
+    The following backgroung information is taken from the  
+    Intorduction to Open Data Science (IODS) course page:
 
 
 # Welcome to Open Data Science!
