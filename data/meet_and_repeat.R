@@ -38,7 +38,7 @@ RATS$Group <- as.factor(RATS$Group)
 library(dplyr)
 library(tidyr)
 BPRSL <- BPRS %>% gather(key = weeks, value = bprs, -treatment, -subject)
-RATSL <- RATS %>% gather(key = WD, value = rats, -ID, -Group)
+RATSL <- RATS %>% gather(key = WD, value = Weight, -ID, -Group)
 
 # Adding week variable to BPRS and a Time variable to RATS
 BPRSL <-  BPRSL %>% mutate(week = as.integer(substr(BPRSL$week,5,6)))
