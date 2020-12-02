@@ -1,13 +1,41 @@
 
-# About the project
+# 1 About the project
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+```{r, echo=FALSE}
+# Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+```
+
+    Taken from the course summary on Weboodi:
+
+See the THINK OPEN blog by Kimmo Vehkalahti at
+<https://blogs.helsinki.fi/thinkopen/welcome-open-data-science/>  
+
+*The name of this course refers to THREE BIG THEMES: 1) Open Data, 2) Open Science, and 3) Data Science. These themes are summarized briefly as follows:*
+
+**1) Open Data**
+
+There are more and more open data sets available. Utilizing and sharing data is an essential skill for researchers in all fields. During this course we use open data sets from different sources and learn to prepare them for different analyses. You will explore, analyse and interpret data from real world applications.
+
+**2) Open Science**
+
+Science thrives to be open. Repeating or reproducing the results is a common aim in any branch of science, but it is not always easy or simple. Sharing data is not enough for reproducibility. What is also needed, is using openly available software tools and methods as well as sharing your code and results. You will learn these skills during this course, using state-of-the-art tools.
+
+**3) Data Science**
+
+Data Science is the name for the data driven world of Statistics. Nowadays, finding or collecting data is not a problem. Instead, the challenges are in extracting knowledge and discovering the patterns behind the data. It requires skills of coding, programming, and modelling, as well as visualizing and analysing. You will face all these topics on this course.
+
+We are quite excited about this course! So come along! Together we’ll guide you through these themes.
+
+Welcome to the course! :)
+
+## 1.1 My own feelings in the beginning
 
 ```{r}
 # This is a so-called "R chunk" where you can write R code.
-#version
 date()
 ```
+ 
+
 First time combining the use of the following tools for this **I**ntroduction to **O**pen **D**ata **S**cience (IODS) course:
 
 * R, (version 4.0.3 (2020-10-10))
