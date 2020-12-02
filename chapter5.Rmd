@@ -1,10 +1,22 @@
 # 5 Dimensionality reduction techniques
 
-*Describe the work you have done this week and summarize your learning.*
+```{r, echo=FALSE}
+# *Describe the work you have done this week and summarize your learning.*
+#
+#- Describe your work and results clearly. 
+#- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
+#- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+```
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+    Intro from the IODS MOOC-page:
+    
+Actually, a fairly large selection of statistical methods can be listed under the title "*dimensionality reduction techniques*". Most often (nearly always, that is!) the real-world phenomena are **multidimensional**: they may consist of not just two or three but 5 or 10 or 20 or 50 (or more) dimensions. Of course, we are living only in a three-dimensional (3D) world, so those multiple dimensions may really challenge our imagination. It would be easier **to reduce the number of dimensions** in one way or another.  
+
+We shall now learn the basics of two data science based ways of reducing the dimensions. The principal method here is **principal component analysis** (PCA), which reduces any number of measured (continuous) and correlated variables into a few uncorrelated components that collect together as much variance as possible from the original variables. The most important components can be then used for various purposes, e.g., drawing scatterplots and other fancy graphs that would be quite impossible to achieve with the original variables and too many dimensions.  
+
+**Multiple correspondence analysis** (MCA) and other variations of CA bring us similar possibilities in the world of **discrete variables**, even nominal scale (classified) variables, by finding a suitable transformation into continuous scales and then reducing the dimensions quite analogously with the PCA. The typical graphs show the original classes of the discrete variables on the same "map", making it possible to reveal **connections** (correspondences) between different things that would be quite impossible to see from the corresponding cross tables (too many numbers!).  
+
+Briefly stated, these methods help to visualize and understand multidimensional phenomena by reducing their dimensionality that may first feel impossible to handle at all.
 
 ## 5.1 Introducing the dataset for PCA
 
@@ -65,9 +77,9 @@ Percentage of female representatives in parliament (`Parli.F`) and Ratio of labo
 
 ## 5.3 Principal Component Analysis 
 
-Principal componen analysis (**PCA**) is a statistical procedure which reduces the number of dimensions in multivariate data. Reducing dimension is essential in representing the phenomenon of interest clearly without "too much" distracting information (non-related data, noise or random error).  
+**Principal component analysis** (PCA) is a statistical procedure which reduces the number of dimensions in multivariate data. Reducing dimension is essential in representing the phenomenon of interest clearly without "too much" distracting information (non-related data, noise or random error).  
 
-The idea of PCA is to *transform* the data to a new space with equal or less number of dimensions (new features). These new features are called **principal components (PC)**. The first PC captures the maximum amount of variance from the features in the original data. The second PC captures the maximum amount of variability left etc. All PC are **uncorrelated** and orthogonal to each other.  
+The idea of PCA is to *transform* the data to a new space with equal or less number of dimensions (new features). These new features are called **principal components** (PC). The first PC captures the **maximum amount of variance** from the features in the original data. The second PC captures the **maximum amount of variability left** etc. All PC are **uncorrelated** and **orthogonal** to each other.  
 
 Since **PCA is sensitive to variance**, let us make two analyses: one without and one with standardized dataset.
 
@@ -112,17 +124,17 @@ biplot(pca2_human, choices = 1:2, cex=c(0.8,1), col=c("grey40","deeppink2"), xla
 
 ### 5.3.3 Interpreting the results
 
-The results are very different based on whether or not the standardization was made.  
+The results are *very different* based on whether or not the standardization was made.  
 
-Without normalization of data, there is practically only one PC which explains 100% of the variance in the data. The variable gross national income per capita (`GNI`) dominates the PCA due to its absolute values being 10- or even 100-fold larger than the other variables. Thus, as expected, there is a crucial need for standardization!  
+Without normalization of data, there is practically only one PC which explains 100% of the variance in the data. The variable gross national income per capita (`GNI`) dominates the PCA due to its absolute values being 10- or even 100-fold larger than the other variables. Thus, as expected, **there is a crucial need for standardization**!  
 
 After standardization, the effect of other variables than just `GNI` becomes clearer. The first PC explains 53.6% of the variability and the second 16.2% covering roughly a total of 70% of the variability in the data. Out of the variables, `Parli.F` and `Labo.FM` have high positive correlation with PC2 (the angle between the y-axis is small) while all other variables have a high correlation with PC1 (x-axis).  This kind of division could be observed already in the correlation plot earlier.
 
-My personal interpretation is that PC1 in the standardized data is some general index for health and knowledge ("standard of living") while PC2 is some female empowerment in the society.
+Regarding the interpretation of the dimensions in the standardized data PCA, it seems that PC1 is some general index for health and knowledge ("standard of living") while PC2 is some female empowerment in the society.
 
 ## 5.4 Multiple Correspondence Analysis
 
-While PCA reduced the dimension for *continuous* variables, Multiple Correspondence Analysis (**MCA**) is an analogous method for *categorical* variables. Let's apply the MCA to `tea` dataset from the package `FactoMineR`. The tea dataset consists of tea consumption survey results from 300 tea consumers. For our purpose we will choose only six columns.
+While *PCA* reduced the dimension for *continuous* variables, **Multiple Correspondence Analysis** (MCA) is an analogous method for **categorical** variables. Let's apply the MCA to `tea` dataset from the package `FactoMineR`. The tea dataset consists of tea consumption survey results from 300 tea consumers. For our purpose we will choose only six columns.
 
 ```{r message=FALSE}
 library(tidyr)
@@ -173,4 +185,4 @@ Here it seems there is no dominating dimensions (the first and the second dimens
 plot(mca, invisible=c("ind"), habillage = "quali")
 ```
 
-Visualizing the data does not give a better insight about the matter either. By interpreting the biggest ranges in the dimentions, the first dimension might tell about how the tea is consumed (in a tea bag vs. unpackaged) while the second dimension tells where the tea is bought (tea shop vs. chain store). The connections remain fuzzy, however. It is possible that sometimes despite all the advanced methods the end result will still remain chaotic. 
+Visualizing the data does not give a better insight about the matter either. By interpreting the biggest ranges in the dimentions, the first dimension might tell about how the tea is consumed (in a tea bag vs. unpackaged) while the second dimension tells where the tea is bought (tea shop vs. chain store). Observing the clusters, it seems that e.g. ```unpackaged``` and ```tea shop``` are very similar as well as ```tea bag``` and ```chain store``` tea have a connection. However, many of the connections remain fuzzy. It is sometimes possible that despite all the advanced methods, obtaining insights from the data is difficult. 

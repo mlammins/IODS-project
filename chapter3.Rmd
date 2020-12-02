@@ -1,10 +1,20 @@
 # 3 Logistic regression
 
-*Describe the work you have done this week and summarize your learning.*
+```{r, echo=FALSE}
+# *Describe the work you have done this week and summarize your learning.*
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+#- Describe your work and results clearly. 
+#- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
+#- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+```
+
+    Intro from the IODS MOOC-page:
+
+One way to move on from linear regression is to consider settings where the dependent (target) variable is **discrete**. This opens a wide range of possibilities for modelling phenomena beyond the assumptions of continuity or normality.  
+
+**Logistic regression** is a powerful method that is well suited for predicting and classifying data by working with **probabilities**. It belongs to a large family of statistical models called **Generalized Linear Models** (GLM). An important special case that involves a **binary** target (taking only the values 0 or 1) is the most typical and popular form of logistic regression.
+
+We will learn the concept of **odds ratio** (OR), which helps to understand and interpret the estimated coefficients of a logistic regression model. We also take a brief look at **cross-validation**, an important principle and technique for assessing the performance of a statistical model with another data set, for example by splitting the data into a **training set** and a **testing set**.
 
 ## 3.1 Introducing the joined dataset
 
@@ -65,12 +75,12 @@ The grades G1, G2 and G3 are related to the course subject, Math or Portuguese. 
 The purpose of the analysis is to study the relationships between high/low alcohol consumption and some of the other variables in the data. Out of the many variables present,  **parent's cohabitation status**, **mother's education**, **quality of family relationships** and the **number of school absences** were chosen. Thus the study hypothesis are as follows:
 
 
-* Hypothesis 1: If the parents are living apart (Pstatus='A'), the alcohol consumption (high_use) is higher
-* Hypothesis 2: The higher the mother's education (Medu), the lower the alcohol consumption (high_use)
-* Hypothesis 3: The higher the quality of family relationships (famrel), the lower the alcohol consumption (high_use)
-* Hypothesis 4: The higher the number of school absences (absences), the higher the alcohol consumption (high_use)
+* **Hypothesis 1**: If the parents are living apart (```Pstatus```='A'), the alcohol consumption (```high_use```) is higher
+* **Hypothesis 2**: The higher the mother's education (```Medu```), the lower the alcohol consumption (```high_use```)
+* **Hypothesis 3**: The higher the quality of family relationships (```famrel```), the lower the alcohol consumption (```high_use```)
+* **Hypothesis 4**: The higher the number of school absences (```absences```), the higher the alcohol consumption (```high_use```)
 
-Note! Now the target variable high_use is a binary variable (TRUE=1, FALSE=0) so we must use logistic regression.
+**Note!** Now the target variable ```high_use``` is a binary variable (TRUE=1, FALSE=0) so we must use *logistic regression*.
 
 
 ## 3.3 Numerical and graphical exploration
@@ -102,9 +112,9 @@ barplot(table(alc_test$alc_use), main="Distribution of alc_use")
 barplot(table(alc_test$high_use), main="Distribution of high_use")
 ```
 
-It seems that only about one third of the participants use alcohol in high volumes. To better grasp the situation, here also the alcohol use (alc_use, numeric from 1 to 5) is shown instead of only the binary variable high use (high_use, TRUE if alc_use > 2).
+It seems that only about one third of the participants use alcohol in high volumes. To better grasp the situation, here also the alcohol use (```alc_use```, numeric from 1 to 5) is shown instead of only the binary variable high use (```high_use```, TRUE if alc_use > 2).
 
-Now let's see what is the relation of our chosen variables to alcohol consumption. Here also the numerical alc_use is used.
+Now let's see what is the relation of our chosen variables to alcohol consumption. Here also the numerical ```alc_use``` is used.
 
 ```{r}
 par(mfrow = c(2,2))
@@ -126,9 +136,9 @@ These boxplots give a rough idea of the relationships between variables and the 
 
 Time to form a mathematically rigorous model using logistic regression! Note that Pstatus will be addressed here as [factor](https://stats.stackexchange.com/questions/60817/significance-of-categorical-predictor-in-logistic-regression). To summarize:
 
-Target variable = high_use 
+**Target variable** = ```high_use``` 
 
-Chosen variables: Pstatus, Medu, famrel, absences
+**Chosen variables**: ```Pstatus```, ```Medu```, ```famrel```, ```absences```
 
 ```{r message=FALSE}
 m <- glm(high_use ~ Pstatus+Medu+famrel+absences, data = alc_test, family ="binomial")
@@ -140,7 +150,7 @@ The most important insight from the model summary is the coefficient section. Us
 
 > high_use $= -0.45+0.17 \times PstatusT-0.01 \times Medu-0.24 \times famrel+0.09 \times absences$
 
-Since the target valuable high_use is binary, it has only values 0 (as FALSE or "failure") and 1 (as TRUE or "success) in modelling sense. The coefficients of the fitted model can be thus interpreted as
+Since the target valuable ```high_use``` is binary, it has only values 0 (as FALSE or "failure") and 1 (as TRUE or "success) in modelling sense. The coefficients of the fitted model can be thus interpreted as
 
 * **PstatusP**: if Pstatus=A, then PstatusT=0 and the coefficient is -0.45 meaning parents living apart actually lessens the probability of high alcohol use. If Pstatus=T, then the effect is -0.45+0.17=-0.28 which is still negative but not as much as with Pstatus=A.
 * **Medu**: higher level of mother's education lessens the probability for high alcohol use but the effect is quite negligible.
@@ -180,15 +190,15 @@ Odds ratio can be used to quantify the relationship between our variable and the
 
 **Comparison of the results with our hypotheses**: 
 
-* Hypothesis 1: Pstatus=A implies high_use. The results are completely contrary; parents living together has a slightly bigger probability of high alcohol use than parents living apart.
-* Hypothesis 2: The higher Medu implies no high_use. The results show that while high mother's education does correlate with lower alcohol use, the effect is negligible.
-* Hypothesis 3: Higher famrel implies no high_use. This hypothesis holds; higher quality of family relations does imply lower alcohol consumption.
-* Hypothesis 4: Higher absences implies high_use. The hypothesis hold. This is, in fact, the most significant independent variable in the model.
+* **Hypothesis 1**: Pstatus=A implies high_use. The results are completely contrary; parents living together has a slightly bigger probability of high alcohol use than parents living apart.
+* **Hypothesis 2**: The higher Medu implies no high_use. The results show that while high mother's education does correlate with lower alcohol use, the effect is negligible.
+* **Hypothesis 3**: Higher famrel implies no high_use. This hypothesis holds; higher quality of family relations does imply lower alcohol consumption.
+* **Hypothesis 4**: Higher absences implies high_use. The hypothesis hold. This is, in fact, the most significant independent variable in the model.
 
 
 ## 3.5 Predictive power of the model
 
-Let's improve our model by discarding the most insignificant variables, Pstatus and Medu. Now the final model has only variables famrel and absences.
+Let's improve our model by discarding the most insignificant variables, ```Pstatus``` and ```Medu```. Now the final model has only variables ```famrel``` and ```absences```.
 
 ```{r message=FALSE}
 # fix the model
@@ -197,7 +207,7 @@ m2 <- glm(high_use ~ famrel+absences, data = alc_test, family ="binomial")
 summary(m2) 
 ```
 
-It seems that the significance of variables famrel and absences has increased slightly compared to the original model. However, the Pr(>|z|) values are almost the same and we have a simpler model than before, so this is an improvement.
+It seems that the significance of variables ```famrel``` and ```absences``` has increased slightly compared to the original model. However, the Pr(>|z|) values are almost the same and we have a simpler model than before, so this is an improvement.
 
 Let's use the improved model and **predict** high_use values of an individual.
 
@@ -245,4 +255,4 @@ cv <- cv.glm(data = alc_test, cost = loss_func, glmfit = m2, K = 10)
 cv$delta[1]
 ```
 
-The prediction error obtained here is larger than in the model introduced in DataCamp (prediction error of 0.26). Choosing more significant variables in the model would improve the predictions.
+The prediction error obtained here is larger than in the model introduced in the chapter's DataCamp session (prediction error of 0.26). Choosing more significant variables in the model would improve the predictions.

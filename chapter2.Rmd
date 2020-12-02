@@ -1,10 +1,18 @@
 # 2 Regression and model validation
 
-*Describe the work you have done this week and summarize your learning.*
+```{r, echo=FALSE}
+#*Describe the work you have done this week and summarize your learning.*
+#- Describe your work and results clearly. 
+#- Assume the reader has an introductory course level understanding of writing and reading #R code as well as statistical methods.
+#- Assume the reader has no previous knowledge of your data or the more advanced methods #you are using.
+```
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+    Intro from the IODS MOOC-page:
+
+How to predict values of one random variable based on information from other variables? This is a basic question behind a **statistical model**, where we try to reveal something about the **causal relation** between different matters of life on Earth - or in the Universe. **Regression analysis** has its roots in the early 19th century, and it is still going strong!  
+
+There are dozens of variations of the **regression model**, depending on the types of variables, the nature of the data, and the research design. We start from the **simple linear regression** and proceed to its extended form, the **multiple linear regression**. In addition, we check the validity of the assumptions that we make about the model(s), by investigating the so called model diagnostics.
+
 
 ## 2.1 Introducing the dataset
 
@@ -25,6 +33,7 @@ minimal amount of missing values imputed using Phases 1 and 2.
 
 ```{r}
 learning2014 <- read.csv("./data/learning2014.csv") # reading the analysis data
+learning2014$gender <- as.factor(learning2014$gender) # change to factor
 dim(learning2014) # number of rows and columns
 str(learning2014) # type of data
 ```
