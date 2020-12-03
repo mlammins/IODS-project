@@ -134,7 +134,7 @@ The discrete side-by-side boxplot does not give any extra insights about data (e
 
 ### 6.1.3 Summary measure analysis of longitudinal data
 
-The summary measure method (also called the response feature method) transforms the repeated measurements of each individual in the study into a single value that captures some essential feature of the individuals response over time. Standard univariate methods are then applied to the summary measures created from the sample of subjects.  
+The **summary measure method** (also called the response feature method) **transforms the repeated measurements** of each individual in the study **into a single value** that captures some essential feature of the individuals response over time. Standard univariate methods are then applied to the summary measures created from the sample of subjects.  
 
 > "The average response to treatment over time is often likely to be the most relevant summary statistic in treatment trials."  -- Frison and Pocock (1992)
 
@@ -162,7 +162,7 @@ ggplot(RATSL8S, aes(x = Group, y = mean)) +
 
 Group 1 is clearly different from the rest (this comes as no surprise based on the earlier graphical display). Groups 2 and 3 are overlapping a bit, though. There are three groups so two sample t-test is out of the questions. We could try analysis of variance (ANOVA). We are, however, forcing it a bit since the assumptions for ANOVA are
 
-* The observations are obtained independently and randomly from the population defined by the factor levels.  
+* The observations are obtained independently (not true!) and randomly from the population defined by the factor levels.  
 
 * The data of each factor level are normally distributed.  
 
@@ -194,78 +194,179 @@ BPRSL <- read.table("./data/BPRSL.txt", header=TRUE)
 # Factor variables ID and Group
 BPRSL$subject <- as.factor(BPRSL$subject)
 BPRSL$treatment <- as.factor(BPRSL$treatment)
-# Look at the wide data, first 10 rows
-head(BPRS, 10)
-# Look at the long data, first 10 rows
-head(BPRSL, 10)
+# Look at the wide data
+glimpse(BPRS)
+# Look at the long data
+glimpse(BPRSL)
 ```
+
+The main focus is the variable ```bprs```. Similar to the RATS data, we also introduce the data in long format for the analysis. In the process of data wrangling the wide format to long format, the variable ```week``` was added to indicate week as a simple integer value.
+
+### 6.2.2 Brief graphical display of BPRS
+
+Let's start by getting a rough idea about the data and not worry too much about the longitudinal nature of the data.
 
 ```{r}
-# plot BPRS data
-ggplot(BPRSL, aes(x = week, y = bprs, group = subject)) +
-  geom_line()+scale_x_continuous(name = "week (days)", breaks = seq(0, 60, 10))+scale_y_continuous(name = "bprs (grams)")+theme(legend.position = "top")
+# Draw the plot
+ggplot(BPRSL, aes(x = week, y = bprs)) +
+  geom_point(aes(shape=treatment,color=treatment)) +
+  theme(legend.position = "top",plot.title = element_text(face="bold", hjust=0.5)) + 
+  scale_y_continuous(limits = c(min(BPRSL$bprs), max(BPRSL$bprs)))+
+  labs(title="Plots of bprs against week,\n ignoring repeated measure structure but retaining treatment group")
 ```
 
+Seems pretty much like a mixed bag! Now, let's take note of the longitudinal nature by connecting the individual profile points.
 
-
+```{r}
+# Draw the plot
+ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(BPRSL$bprs), max(BPRSL$bprs)))+
+  theme(plot.title = element_text(face="bold",hjust=0.5)) +
+  labs(title="Plots of individual bprs profile")
+ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(BPRSL$bprs), max(BPRSL$bprs)))+
+  theme(plot.title = element_text(face="bold",hjust=0.5)) +
+  labs(title="Plots of individual bprs profile by treatment")
+# Try scatterplot matrix, colored by treatment group
+pairs(BPRS, col=BPRS$treatment)
 ```
 
-Analyz
+After connecting the data points for each subject, the plot makes more sense. However, it is still difficult to get any insights from the data. The scatterplot matrix of the repeated measures of bprs is not a terribly helpful addition either, but it does demonstrate that the repeated measures are certainly not independent of one another. What one can say, nevertheless, is that
 
-```{r, eval=FALSE}
-# dplyr, tidyr, RATS and RATSL are available
+* the ```bprs``` value seems to be generally decreasing over the time  
+
+* there seems be somewhat much variance in the data of each individual  
+
+* the ```bprs``` values for treatment groups 1 and 2 are overlapping
+
+
+### 6.2.3 Fitting the linear model
+
+Let's fit a simple linear model to the BPRS data.
+
+```{r}
 # create a regression model RATS_reg
-RATS_reg <- lm(Weight ~Time+Group, data=RATSL)
+BPRS_reg <- lm(bprs ~ week + treatment, data=BPRSL)
 # print out a summary of the model
-summary(RATS_reg)
+summary(BPRS_reg)
+```
 
-###
+Deciphering from the summary, the intercept and week (time) are statistically significant variables in the model. Interestingly, however, the treatment group is not! Anyway, this model forms the "*baseline*" against which the next models will be compared.
 
-# dplyr, tidyr, RATS and RATSL are available
+### 6.2.4 Fitting the random intercept model
+
+While the linear model above assumes independence of the repeated measured of weight, that is not the case in reality. Thus we will next use a random intercept model which **allows the linear regression fit for each subject to differ in *intercept*** from other subjects.
+
+```{r, message=FALSE}
 # access library lme4
 library(lme4)
 # Create a random intercept model
-RATS_ref <- lmer(Weight ~ Time + Group + (1 | ID), data = RATSL, REML = FALSE)
+BPRS_ref <- lmer(bprs ~ week + treatment + (1 | subject), data = BPRSL, REML = FALSE)
 # Print the summary of the model
-summary(RATS_ref)
-
-###
-
-# dplyr, tidyr, lme4, ggplot2, RATS and RATSL are available
-# create a random intercept and random slope model
-RATS_ref1 <- lmer(Weight ~ Time + Group + (Time | ID), data = RATSL, REML = FALSE)
-# print a summary of the model
-summary(RATS_ref)
-# perform an ANOVA test on the two models
-anova(RATS_ref1, RATS_ref)
-
-###
-
-# dplyr, tidyr, lme4, ggplot2, RATS and RATSL are available
-# create a random intercept and random slope model with the interaction
-RATS_ref2 <- lmer(Weight ~ Time + Group + Time*Group + (Time | ID), data = RATSL, REML = FALSE)
-# print a summary of the model
-summary(RATS_ref2)
-# perform an ANOVA test on the two models
-anova(RATS_ref2, RATS_ref1)
-# draw the plot of RATSL with the observed Weight values
-ggplot(RATSL, aes(x = Time, y = Weight, group = ID)) +
-  geom_line(aes(linetype = Group)) +
-  scale_x_continuous(name = "Time (days)", breaks = seq(0, 60, 20)) +
-  scale_y_continuous(name = "Observed weight (grams)") +
-  theme(legend.position = "top")
-# Create a vector of the fitted values
-Fitted <- fitted(RATS_ref2)
-# Create a new column fitted to RATSL
-RATSL$fitted <- Fitted
-# draw the plot of RATSL with the Fitted values of weight
-ggplot(RATSL, aes(x = Time, y = fitted, group = ID)) +
-  geom_line(aes(linetype = Group)) +
-  scale_x_continuous(name = "Time (days)", breaks = seq(0, 60, 20)) +
-  scale_y_continuous(name = "Fitted weight (grams)") +
-  theme(legend.position = "top")
+summary(BPRS_ref)
 ```
 
+Allowing the intercept to vary increases the flexibility (and complexity) of the model. One can see that the Fixed Effects model here is actually the same linear model fit earlier. Let's increase the flexibility even further.
+
+### 6.2.5 Fitting random intercept and random slope model
+
+In addition to difference in the interecept, let's **allow also the slopes to differ**.
+
+```{r}
+# create a random intercept and random slope model
+BPRS_ref1 <- lmer(bprs ~ week + treatment + (week | subject), data = BPRSL, REML = FALSE)
+# print a summary of the model
+summary(BPRS_ref1)
+# perform an ANOVA test on the two models
+anova(BPRS_ref1, BPRS_ref)
+```
+
+Now we have drastically increased the complexity of the model compared to the baseline linea model (note also here the familiar Fixed effects model...). ANOVA test can be used to see whether increasing the complexity of the model is actually worth it; is the more complex model significantly better. Increasing parameters surely gives a better fit but also increases the complexity and calculation times.  
+
+Here it seems the most model certainly gives the best fit (p<0.05). The chi-squared (Chisq) tells the fit: the lower the value, the better the fit against the comparison model. Yet the model can be easily improved.
+
+### 6.2.6 Fitting random intercept and random slope model with interaction
+
+Finally, let's allow the treatment x week interaction.
+
+```{r}
+# create a random intercept and random slope model with the interaction
+BPRS_ref2 <- lmer(bprs ~ week + treatment + week*treatment + (week | subject), data = BPRSL, REML = FALSE)
+# print a summary of the model
+summary(BPRS_ref2)
+# perform an ANOVA test on the two models
+anova(BPRS_ref2, BPRS_ref1)
+# draw the plot of BPRSL with the observed bprs values
+ggplot(BPRSL, aes(x = week, y = bprs, group = subject)) +
+  geom_line(aes(linetype=subject)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  scale_x_continuous(name = "Week") +
+  scale_y_continuous(name = "bprs") +
+  theme(legend.position = "none")+
+  theme(plot.title = element_text(face="bold",hjust=0.5)) +
+  labs(title="The Original\nPlots of individual bprs profile by treatment")
+# Create a vector of the fitted values
+Fitted <- fitted(BPRS_ref2)
+# Create a new column fitted to RATSL
+BPRSL$fitted <- Fitted
+# draw the plot of BPRSL with the Fitted values of bprs
+ggplot(BPRSL, aes(x = week, y = fitted, group = subject)) +
+  geom_line(aes(linetype = subject)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  scale_x_continuous(name = "week") +
+  scale_y_continuous(name = "Fitted bprs") +
+  theme(legend.position = "none")+
+  theme(plot.title = element_text(face="bold",hjust=0.5)) +
+  labs(title="The Best\nRandom intercept and random slope model with interaction")
+```
+
+**This is it!** The best model we have (p<0.10 compared to the previous). Out of curiosity let's also plot the previous models to see the comparison. It is very difficult to see the exact difference between the final model and the previous model without interaction. However, after that one clearly sees the difference.
+
+```{r, echo=FALSE}
+# Random intercept and random slope model
+Fitted2 <- fitted(BPRS_ref1)
+BPRSL$fitted2 <- Fitted2
+# draw the plot of BPRSL with the Fitted values of bprs
+ggplot(BPRSL, aes(x = week, y = fitted2, group = subject)) +
+  geom_line(aes(linetype = subject)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  scale_x_continuous(name = "week") +
+  scale_y_continuous(name = "Fitted bprs") +
+  theme(legend.position = "none")+
+  theme(plot.title = element_text(face="bold",hjust=0.5)) +
+  labs(title="Random intercept and random slope model")
+# Random intercept model
+Fitted3 <- fitted(BPRS_ref)
+BPRSL$fitted3 <- Fitted3
+# draw the plot of BPRSL with the Fitted values of bprs
+ggplot(BPRSL, aes(x = week, y = fitted3, group = subject)) +
+  geom_line(aes(linetype = subject)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  scale_x_continuous(name = "week") +
+  scale_y_continuous(name = "Fitted bprs") +
+  theme(legend.position = "none")+
+  theme(plot.title = element_text(face="bold",hjust=0.5)) +
+  labs(title="Random intercept model")
+# linear model
+Fitted4 <- fitted(BPRS_reg)
+BPRSL$fitted4 <- Fitted4
+# draw the plot of BPRSL with the Fitted values of bprs
+ggplot(BPRSL, aes(x = week, y = fitted4, group = subject)) +
+  geom_line(aes(linetype = subject)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  scale_x_continuous(name = "week") +
+  scale_y_continuous(name = "Fitted bprs", limits = c(20,70)) +
+  theme(legend.position = "none")+
+  theme(plot.title = element_text(face="bold",hjust=0.5)) +
+  labs(title="The Baseline\nLinear model")
+```
 
 
 ```{r DATACAMP-code, eval=FALSE, echo=FALSE}
