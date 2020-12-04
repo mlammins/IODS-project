@@ -1,6 +1,6 @@
 # 6 Analysis of longitudinal data
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=FALSE}
 # *Describe the work you have done this week and summarize your learning.*
 #
 #- Describe your work and results clearly. 
@@ -120,16 +120,14 @@ ggplot(RATSS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
   scale_y_continuous(name = "mean(Weight) +/- se(Weight)")+
   labs(title="Mean weight profiles for the three groups in the RATS data")
 # Boxplots
-RATSS2 <- RATSS
-RATSS2$Time <- as.factor(RATSS2$Time)
-ggplot(RATSS2, aes(x = Time, y = mean, fill = Group)) +
+ggplot(RATSL, aes(x = factor(Time), y = Weight, fill = Group)) +
   geom_boxplot() +
-  theme(legend.position = c(0.9,0.5),plot.title = element_text(face="bold",hjust=0.5)) +
+  theme(legend.position = c(0.9,0.35),plot.title = element_text(face="bold",hjust=0.5)) +
   scale_y_continuous(name = "mean(Weight) +/- se(Weight)")+
   labs(title="Boxplots for the RATS data")
 ```
 
-The discrete side-by-side boxplot does not give any extra insights about data (e.g. outliers). The continuous average profile plot is more clear in this case. The average profile plot clearly indicates the general increase in weight over the 60 days in all groups. There is no overlap suggesting big differences between groups.  
+The discrete side-by-side boxplot gives better insights about data (e.g. outliers). However, the number of subjects is quite small in the groups (8, 4 and 4, respectively) so certain subjects will stand out as the outliers all the time. The boxplots and the average profile plot clearly indicate the general increase in weight over the 60 days in all groups. There is no big overlap suggesting there are differences between groups.  
 
 
 ### 6.1.3 Summary measure analysis of longitudinal data
